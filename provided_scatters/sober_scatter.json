@@ -1,0 +1,6 @@
+{
+  "ScatterTitle": "Sober scatter",
+  "RobloxURI": "roblox://",
+  "RobloxRunCommand": "flatpak run org.vinegarhq.Sober %u", 
+  "RobloxAppDataDirectory": "~/.var/app/org.vinegarhq.Sober/data/sober/appData"
+}

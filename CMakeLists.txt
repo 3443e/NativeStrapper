@@ -14,6 +14,6 @@ file(GLOB_RECURSE HEADERS "include/*.hpp")
 
 add_executable(nativestrapper ${SOURCES} ${HEADERS})
 
-target_include_directories(nativestrapper PRIVATE include)
+target_include_directories(nativestrapper PRIVATE include external)
 
 target_link_libraries(nativestrapper PRIVATE Qt5::Widgets)

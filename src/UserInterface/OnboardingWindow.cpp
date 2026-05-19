@@ -1,6 +1,7 @@
 #include "UserInterface/OnboardingWindow.hpp"
 #include "UserInterface/SettingsWindow.hpp"
-#include <QApplication>
+#include "UserInterface/ScatterInfoWindow.hpp"
+#include "ScatterManager.hpp"
 #include <QCoreApplication>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -8,6 +9,11 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QPixmap>
+#include <QDebug>
+#include <QListWidget>
+#include <QFileDialog>
+#include <QFile>
+#include <QTextStream>
 
 OnboardingWindow::OnboardingWindow() {
     setWindowTitle("NativeStrapper");
@@ -19,9 +25,9 @@ OnboardingWindow::OnboardingWindow() {
     layout->setSpacing(0);
 
     auto *leftWidget = new QWidget();
-    leftWidget->setStyleSheet("background-color: #262626;");
+    leftWidget->setObjectName("leftWidget");
+    leftWidget->setStyleSheet("QWidget#leftWidget { background-color: #1a1a1a; }");
     auto *left = new QVBoxLayout(leftWidget);
-
     left->addWidget(new QPushButton("Launch Roblox"));
 
     QPushButton *settingsBtn = new QPushButton("Settings", leftWidget);
@@ -38,8 +44,8 @@ OnboardingWindow::OnboardingWindow() {
         exit(0);
     });
     left->addWidget(quitBtn);
-
     left->addStretch();
+
     auto *bottomText = new QLabel("Made with love -3443");
     bottomText->setStyleSheet("font-size: 10px; color: #888888;");
     left->addWidget(bottomText);
@@ -49,7 +55,7 @@ OnboardingWindow::OnboardingWindow() {
     QWidget *rightWidget = new QWidget();
     rightWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *rightLayout = new QVBoxLayout(rightWidget);
-    rightLayout->setContentsMargins(0, 20, 0, 0);
+    rightLayout->setContentsMargins(0, 20, 0, 8);
     rightLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 
     QLabel *imageLabel = new QLabel();
@@ -58,7 +64,27 @@ OnboardingWindow::OnboardingWindow() {
     imageLabel->setAlignment(Qt::AlignCenter);
     rightLayout->addWidget(imageLabel, 0, Qt::AlignHCenter);
 
-    statusLabel = new QLabel("No scatter loaded :(");
+    QLabel *quoteLabel = new QLabel("A cross-platform roblox bootstrapper.");
+    quoteLabel->setAlignment(Qt::AlignCenter);
+    quoteLabel->setStyleSheet("color: #bebebe; font-size: 9px;");
+    rightLayout->addWidget(quoteLabel, 0, Qt::AlignHCenter);
+
+    rightLayout->addSpacing(6);
+
+    QLabel *scatterTitle = new QLabel("Loaded Scatters:");
+    scatterTitle->setAlignment(Qt::AlignCenter);
+    scatterTitle->setStyleSheet("color: #ffffff; font-size: 10px;");
+    rightLayout->addWidget(scatterTitle, 0, Qt::AlignHCenter);
+
+    rightLayout->addSpacing(2);
+
+    QWidget *statusContainer = new QWidget();
+    statusContainer->setFixedSize(200, 60);
+    QVBoxLayout *statusLayout = new QVBoxLayout(statusContainer);
+    statusLayout->setContentsMargins(0, 0, 0, 0);
+    statusLayout->setAlignment(Qt::AlignCenter);
+
+    statusLabel = new QLabel("No scatters loaded :(");
     statusLabel->setAlignment(Qt::AlignCenter);
     statusLabel->setStyleSheet(
         "color: #888888;"
@@ -67,8 +93,152 @@ OnboardingWindow::OnboardingWindow() {
         "border-radius: 4px;"
         "background-color: #333333;"
     );
-    rightLayout->addWidget(statusLabel, 0, Qt::AlignHCenter);
+    statusLayout->addWidget(statusLabel);
+
+    scatterList = new QListWidget();
+    scatterList->setStyleSheet(
+        "QListWidget {"
+        "  background-color: #333333;"
+        "  color: #cccccc;"
+        "  border-radius: 4px;"
+        "  font-size: 11px;"
+        "  padding: 2px;"
+        "}"
+        "QListWidget::item { padding: 2px 6px; }"
+        "QListWidget::item:selected { background-color: #444444; }"
+    );
+    statusLayout->addWidget(scatterList);
+
+    rightLayout->addWidget(statusContainer, 0, Qt::AlignHCenter);
+    rightLayout->addStretch();
+
+    QString btnStyle =
+        "QPushButton {"
+        "  background-color: #3d3d3d;"
+        "  color: #dddddd;"
+        "  border: 1px solid #555555;"
+        "  border-radius: 3px;"
+        "  padding: 3px 6px;"
+        "  font-size: 10px;"
+        "}"
+        "QPushButton:hover { background-color: #4a4a4a; }"
+        "QPushButton:pressed { background-color: #2e2e2e; }"
+        "QPushButton:disabled {"
+        "  background-color: #2e2e2e;"
+        "  color: #555555;"
+        "  border: 1px solid #3a3a3a;"
+        "}";
+
+    QWidget *btnRow = new QWidget();
+    QHBoxLayout *btnLayout = new QHBoxLayout(btnRow);
+    btnLayout->setContentsMargins(0, 0, 0, 0);
+    btnLayout->setSpacing(4);
+
+    QPushButton *importBtn = new QPushButton("Import Scatter");
+    importBtn->setStyleSheet(btnStyle);
+    QObject::connect(importBtn, &QPushButton::clicked, [this]() {
+        QString path = QFileDialog::getOpenFileName(
+            this, "Import Scatter", QString(),
+            "Scatter Files (*.json);;All Files (*)"
+        );
+        if (path.isEmpty()) return;
+
+        QFile file(path);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+
+        QTextStream in(&file);
+        std::string contents = in.readAll().toStdString();
+        file.close();
+
+        ScatterManager::Scatter *scatter = ScatterManager::ParseScatter(contents);
+        if (!scatter) return;
+
+        ScatterManager::LoadedScatters.push_back(*scatter);
+        delete scatter;
+
+        refreshScatterView();
+    });
+
+    deleteBtn = new QPushButton("Delete");
+    deleteBtn->setStyleSheet(btnStyle);
+    deleteBtn->setEnabled(false);
+    QObject::connect(deleteBtn, &QPushButton::clicked, [this]() {
+        int row = scatterList->currentRow();
+        if (row < 0 || row >= (int)ScatterManager::LoadedScatters.size()) return;
+
+        ScatterManager::LoadedScatters.erase(ScatterManager::LoadedScatters.begin() + row);
+        deleteBtn->setEnabled(false);
+        viewBtn->setEnabled(false);
+        toggleBtn->setEnabled(false);
+        refreshScatterView();
+    });
+
+    viewBtn = new QPushButton("View");
+    viewBtn->setStyleSheet(btnStyle);
+    viewBtn->setEnabled(false);
+    QObject::connect(viewBtn, &QPushButton::clicked, [this]() {
+        int row = scatterList->currentRow();
+        if (row < 0 || row >= (int)ScatterManager::LoadedScatters.size()) return;
+
+        ScatterInfoWindow *w = new ScatterInfoWindow(ScatterManager::LoadedScatters[row], this);
+        w->exec();
+    });
+
+    toggleBtn = new QPushButton("Disable");
+    toggleBtn->setStyleSheet(btnStyle);
+    toggleBtn->setEnabled(false);
+    QObject::connect(toggleBtn, &QPushButton::clicked, [this]() {
+        int row = scatterList->currentRow();
+        if (row < 0 || row >= (int)ScatterManager::LoadedScatters.size()) return;
+
+        ScatterManager::Scatter &scatter = ScatterManager::LoadedScatters[row]; // reference!
+        scatter.Active = !scatter.Active;
+        toggleBtn->setText(scatter.Active ? "Disable" : "Enable");
+        scatterList->item(row)->setText(QString::fromStdString(
+            scatter.ScatterTitle + " - " + (scatter.Active ? "active" : "not active")
+        ));
+    });
+
+    QObject::connect(scatterList, &QListWidget::itemSelectionChanged, [this]() {
+        bool selected = scatterList->currentRow() >= 0;
+        deleteBtn->setEnabled(selected);
+        viewBtn->setEnabled(selected);
+        toggleBtn->setEnabled(selected);
+        if (selected) {
+            bool active = ScatterManager::LoadedScatters[scatterList->currentRow()].Active;
+            toggleBtn->setText(active ? "Disable" : "Enable");
+        }
+    });
+
+    btnLayout->addWidget(importBtn);
+    btnLayout->addWidget(deleteBtn);
+    btnLayout->addWidget(viewBtn);
+    btnLayout->addWidget(toggleBtn);
+
+    rightLayout->addWidget(btnRow, 0, Qt::AlignHCenter);
 
     layout->addWidget(rightWidget);
     setCentralWidget(root);
+
+    refreshScatterView();
+}
+
+void OnboardingWindow::refreshScatterView() {
+    bool hasScatters = !ScatterManager::LoadedScatters.empty();
+
+    statusLabel->setVisible(!hasScatters);
+    scatterList->setVisible(hasScatters);
+
+    if (hasScatters) {
+        int prevRow = scatterList->currentRow();
+        scatterList->clear();
+        for (const auto &scatter : ScatterManager::LoadedScatters) {
+            scatterList->addItem(QString::fromStdString(
+                scatter.ScatterTitle + " - " + (scatter.Active ? "active" : "not active")
+            ));
+        }
+        if (prevRow >= 0 && prevRow < scatterList->count()) {
+            scatterList->setCurrentRow(prevRow);
+        }
+    }
 }
