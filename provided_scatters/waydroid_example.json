@@ -1,5 +1,5 @@
 {
-  "ScatterTitle": "Sober - A roblox runtime for linux.",
+  "ScatterTitle": "Waydroid - Roblox app",
   "RobloxURIs": "roblox, roblox-player",
   "RobloxRunCommand": "flatpak run org.vinegarhq.Sober %u", 
   "RobloxAppDataDirectory": "~/.var/app/org.vinegarhq.Sober/data/sober/appData"

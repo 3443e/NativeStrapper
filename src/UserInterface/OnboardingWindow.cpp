@@ -9,11 +9,11 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QPixmap>
-#include <QDebug>
 #include <QListWidget>
 #include <QFileDialog>
 #include <QFile>
 #include <QTextStream>
+#include <QMessageBox>
 
 OnboardingWindow::OnboardingWindow() {
     setWindowTitle("NativeStrapper");
@@ -71,10 +71,10 @@ OnboardingWindow::OnboardingWindow() {
 
     rightLayout->addSpacing(6);
 
-    QLabel *scatterTitle = new QLabel("Loaded Scatters:");
-    scatterTitle->setAlignment(Qt::AlignCenter);
-    scatterTitle->setStyleSheet("color: #ffffff; font-size: 10px;");
-    rightLayout->addWidget(scatterTitle, 0, Qt::AlignHCenter);
+    QLabel *scatterTitleLabel = new QLabel("Loaded Scatters:");
+    scatterTitleLabel->setAlignment(Qt::AlignCenter);
+    scatterTitleLabel->setStyleSheet("color: #ffffff; font-size: 10px;");
+    rightLayout->addWidget(scatterTitleLabel, 0, Qt::AlignHCenter);
 
     rightLayout->addSpacing(2);
 
@@ -134,7 +134,7 @@ OnboardingWindow::OnboardingWindow() {
     btnLayout->setContentsMargins(0, 0, 0, 0);
     btnLayout->setSpacing(4);
 
-    QPushButton *importBtn = new QPushButton("Import Scatter");
+    QPushButton *importBtn = new QPushButton("Import");
     importBtn->setStyleSheet(btnStyle);
     QObject::connect(importBtn, &QPushButton::clicked, [this]() {
         QString path = QFileDialog::getOpenFileName(
@@ -153,23 +153,31 @@ OnboardingWindow::OnboardingWindow() {
         ScatterManager::Scatter *scatter = ScatterManager::ParseScatter(contents);
         if (!scatter) return;
 
+        QMessageBox warn(this);
+        warn.setWindowTitle("Import Scatter");
+        warn.setText(QString(
+            "You are about to install \"%1\".\n\n"
+            "Only import scatters from sources you trust. "
+            "A scatter can run arbitrary commands on your system.\n\n"
+            "This will also register it as your Roblox URI handler."
+        ).arg(QString::fromStdString(scatter->ScatterTitle)));
+        warn.setIcon(QMessageBox::Warning);
+        warn.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        if (warn.exec() != QMessageBox::Ok) {
+            delete scatter;
+            return;
+        }
+
+        auto result = ScatterManager::InstallScatter(scatter);
+        if (result == ScatterManager::ScatterInstallResult::SINSTALLUNKNOWNENVIRONMENT) {
+            QMessageBox::critical(this, "Error", "Installing scatters is not supported on this platform.");
+            delete scatter;
+            return;
+        }
+
         ScatterManager::LoadedScatters.push_back(*scatter);
         delete scatter;
 
-        refreshScatterView();
-    });
-
-    deleteBtn = new QPushButton("Delete");
-    deleteBtn->setStyleSheet(btnStyle);
-    deleteBtn->setEnabled(false);
-    QObject::connect(deleteBtn, &QPushButton::clicked, [this]() {
-        int row = scatterList->currentRow();
-        if (row < 0 || row >= (int)ScatterManager::LoadedScatters.size()) return;
-
-        ScatterManager::LoadedScatters.erase(ScatterManager::LoadedScatters.begin() + row);
-        deleteBtn->setEnabled(false);
-        viewBtn->setEnabled(false);
-        toggleBtn->setEnabled(false);
         refreshScatterView();
     });
 
@@ -184,36 +192,41 @@ OnboardingWindow::OnboardingWindow() {
         w->exec();
     });
 
-    toggleBtn = new QPushButton("Disable");
-    toggleBtn->setStyleSheet(btnStyle);
-    toggleBtn->setEnabled(false);
-    QObject::connect(toggleBtn, &QPushButton::clicked, [this]() {
+    uninstallBtn = new QPushButton("Uninstall");
+    uninstallBtn->setStyleSheet(btnStyle);
+    uninstallBtn->setEnabled(false);
+    QObject::connect(uninstallBtn, &QPushButton::clicked, [this]() {
         int row = scatterList->currentRow();
         if (row < 0 || row >= (int)ScatterManager::LoadedScatters.size()) return;
 
-        ScatterManager::Scatter &scatter = ScatterManager::LoadedScatters[row]; // reference!
-        scatter.Active = !scatter.Active;
-        toggleBtn->setText(scatter.Active ? "Disable" : "Enable");
-        scatterList->item(row)->setText(QString::fromStdString(
-            scatter.ScatterTitle + " - " + (scatter.Active ? "active" : "not active")
-        ));
+        ScatterManager::Scatter &scatter = ScatterManager::LoadedScatters[row];
+
+        QMessageBox warn(this);
+        warn.setWindowTitle("Uninstall Scatter");
+        warn.setText(QString(
+            "Are you sure you want to uninstall \"%1\"?\n\n"
+            "This will remove it as your Roblox URI handler."
+        ).arg(QString::fromStdString(scatter.ScatterTitle)));
+        warn.setIcon(QMessageBox::Warning);
+        warn.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        if (warn.exec() != QMessageBox::Ok) return;
+
+        ScatterManager::UninstallScatter(&scatter);
+        ScatterManager::LoadedScatters.erase(ScatterManager::LoadedScatters.begin() + row);
+        viewBtn->setEnabled(false);
+        uninstallBtn->setEnabled(false);
+        refreshScatterView();
     });
 
     QObject::connect(scatterList, &QListWidget::itemSelectionChanged, [this]() {
         bool selected = scatterList->currentRow() >= 0;
-        deleteBtn->setEnabled(selected);
         viewBtn->setEnabled(selected);
-        toggleBtn->setEnabled(selected);
-        if (selected) {
-            bool active = ScatterManager::LoadedScatters[scatterList->currentRow()].Active;
-            toggleBtn->setText(active ? "Disable" : "Enable");
-        }
+        uninstallBtn->setEnabled(selected);
     });
 
     btnLayout->addWidget(importBtn);
-    btnLayout->addWidget(deleteBtn);
     btnLayout->addWidget(viewBtn);
-    btnLayout->addWidget(toggleBtn);
+    btnLayout->addWidget(uninstallBtn);
 
     rightLayout->addWidget(btnRow, 0, Qt::AlignHCenter);
 
@@ -233,9 +246,7 @@ void OnboardingWindow::refreshScatterView() {
         int prevRow = scatterList->currentRow();
         scatterList->clear();
         for (const auto &scatter : ScatterManager::LoadedScatters) {
-            scatterList->addItem(QString::fromStdString(
-                scatter.ScatterTitle + " - " + (scatter.Active ? "active" : "not active")
-            ));
+            scatterList->addItem(QString::fromStdString(scatter.ScatterTitle));
         }
         if (prevRow >= 0 && prevRow < scatterList->count()) {
             scatterList->setCurrentRow(prevRow);

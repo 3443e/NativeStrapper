@@ -12,7 +12,7 @@ public:
 private:
     QLabel *statusLabel;
     QListWidget *scatterList;
-    QPushButton *deleteBtn;
+    QPushButton *uninstallBtn;
     QPushButton *toggleBtn;
     QPushButton *viewBtn;
     void refreshScatterView();
