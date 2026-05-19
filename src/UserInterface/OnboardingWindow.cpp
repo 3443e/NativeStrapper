@@ -175,9 +175,6 @@ OnboardingWindow::OnboardingWindow() {
             return;
         }
 
-        ScatterManager::LoadedScatters.push_back(*scatter);
-        delete scatter;
-
         refreshScatterView();
     });
 
@@ -212,7 +209,6 @@ OnboardingWindow::OnboardingWindow() {
         if (warn.exec() != QMessageBox::Ok) return;
 
         ScatterManager::UninstallScatter(&scatter);
-        ScatterManager::LoadedScatters.erase(ScatterManager::LoadedScatters.begin() + row);
         viewBtn->setEnabled(false);
         uninstallBtn->setEnabled(false);
         refreshScatterView();

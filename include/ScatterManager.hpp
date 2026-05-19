@@ -27,7 +27,9 @@ namespace ScatterManager {
     ScatterInstallResult InstallScatter(Scatter*);
 
     enum ScatterUninstallResult {
-        SUNINSTALLSUCCESS
+        SUNINSTALLSUCCESS,
+        SUNINSTALLFAILED,
+        SUNINSTALLUNKNOWNENVIRONMENT
     };
 
     ScatterUninstallResult UninstallScatter(Scatter*);

@@ -6,6 +6,7 @@
 #include <QCoreApplication>
 #include "json.hpp"
 #include "ScatterManager.hpp"
+#include "ConfigSaving.hpp"
 
 using json = nlohmann::json;
 
@@ -34,6 +35,8 @@ ScatterManager::Scatter* ScatterManager::ParseScatter(std::string data) {
 }
 
 ScatterManager::ScatterInstallResult ScatterManager::InstallScatter(ScatterManager::Scatter* scatter) {
+    ScatterInstallResult result = ScatterInstallResult::SINSTALLUNKNOWNENVIRONMENT;
+
 #ifdef __linux__
     QString title = QString::fromStdString(scatter->ScatterTitle);
     QString safeTitle = title.toLower().replace(" ", "-");
@@ -50,7 +53,7 @@ ScatterManager::ScatterInstallResult ScatterManager::InstallScatter(ScatterManag
         "[Desktop Entry]\n"
         "Type=Application\n"
         "Name=" + title + "\n"
-        "Exec=" + execPath + " --scatter \"" + title + "\" %u\n"
+        "Exec=" + execPath + " --scatter " + safeTitle + " %u\n"
         "MimeType=" + mimeType + "\n"
         "Terminal=false\n"
         "NoDisplay=true\n";
@@ -69,13 +72,50 @@ ScatterManager::ScatterInstallResult ScatterManager::InstallScatter(ScatterManag
         QProcess::execute("xdg-mime", {"default", "nativestrapper-" + safeTitle + ".desktop", scheme});
     }
     QProcess::execute("update-desktop-database", {QDir::homePath() + "/.local/share/applications/"});
-
-    return ScatterManager::ScatterInstallResult::SINSTALLSUCCESS;
+    result = ScatterManager::ScatterInstallResult::SINSTALLSUCCESS;
 #endif
-    return ScatterManager::ScatterInstallResult::SINSTALLUNKNOWNENVIRONMENT;
+
+    if (result == ScatterInstallResult::SINSTALLSUCCESS) {
+        LoadedScatters.push_back(*scatter);
+        ConfigSaving::SaveScatters();
+    }
+
+    return result;
 }
 
 ScatterManager::ScatterUninstallResult ScatterManager::UninstallScatter(ScatterManager::Scatter* scatter) {
+    ScatterUninstallResult result = ScatterUninstallResult::SUNINSTALLUNKNOWNENVIRONMENT;
+#ifdef __linux__
+    QString safeTitle = QString::fromStdString(scatter->ScatterTitle).toLower().replace(" ", "-");
+    QString desktopPath = QDir::homePath() + "/.local/share/applications/nativestrapper-" + safeTitle + ".desktop";
 
-    return ScatterManager::ScatterUninstallResult::SUNINSTALLSUCCESS;
+    QString mimeappsPath = QDir::homePath() + "/.config/mimeapps.list";
+    QSettings mimeapps(mimeappsPath, QSettings::IniFormat);
+    mimeapps.beginGroup("Default Applications");
+    for (const auto &uri : scatter->RobloxURIs) {
+        mimeapps.remove("x-scheme-handler/" + QString::fromStdString(uri).trimmed());
+    }
+    mimeapps.endGroup();
+
+    // delete the .desktop file
+    QFile file(desktopPath);
+    if (file.exists()) {
+        if (!file.remove()) {
+            result = ScatterManager::ScatterUninstallResult::SUNINSTALLFAILED;
+        }
+    }
+
+    QProcess::execute("update-desktop-database", {QDir::homePath() + "/.local/share/applications/"});
+
+    result = ScatterManager::ScatterUninstallResult::SUNINSTALLSUCCESS;
+#endif
+
+    if (result == ScatterUninstallResult::SUNINSTALLSUCCESS) {
+        LoadedScatters.erase(std::remove_if(LoadedScatters.begin(), LoadedScatters.end(),
+            [&](const Scatter &s) { return s.ScatterTitle == scatter->ScatterTitle; }
+        ), LoadedScatters.end());
+        ConfigSaving::SaveScatters();
+    }
+
+    return result;
 }
