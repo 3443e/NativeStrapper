@@ -1,13 +1,13 @@
 #pragma once
-#include "VesselManager.hpp"
+#include "ScatterManager.hpp"
 #include <QDialog>
 #include <QLabel>
 #include <QVBoxLayout>
 
-class VesselInfoWindow : public QDialog {
+class ScatterInfoWindow : public QDialog {
 public:
-    VesselInfoWindow(const VesselManager::Vessel &vessel, QWidget *parent = nullptr) : QDialog(parent) {
-        setWindowTitle("Vessel Info");
+    ScatterInfoWindow(const ScatterManager::Scatter &scatter, QWidget *parent = nullptr) : QDialog(parent) {
+        setWindowTitle("Scatter Info");
         setFixedSize(300, 120);
         auto *layout = new QVBoxLayout(this);
 
@@ -18,9 +18,9 @@ public:
             layout->addWidget(lbl);
         };
 
-        makeRow("URI", vessel.RobloxURI);
-        makeRow("Run Command", vessel.RobloxRunCommand);
-        //makeRow("AppData Dir", vessel.RobloxAppDataDirectory);
+        makeRow("URI", scatter.RobloxURI);
+        makeRow("Run Command", scatter.RobloxRunCommand);
+        //makeRow("AppData Dir", scatter.RobloxAppDataDirectory);
 
         setStyleSheet("background-color: #2a2a2a;");
     }

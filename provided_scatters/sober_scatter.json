@@ -1,5 +1,5 @@
 {
-  "VesselTitle": "Sober - A roblox runtime for linux.",
+  "ScatterTitle": "Sober - A roblox runtime for linux.",
   "RobloxURIs": "roblox, roblox-player",
   "RobloxRunCommand": "flatpak run org.vinegarhq.Sober %u",
   "AppDataDirectories": [

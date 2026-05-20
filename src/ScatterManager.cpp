@@ -5,13 +5,13 @@
 #include <QDir>
 #include <QCoreApplication>
 #include "json.hpp"
-#include "VesselManager.hpp"
+#include "ScatterManager.hpp"
 #include "ConfigSaving.hpp"
 
 using json = nlohmann::json;
 
-namespace VesselManager {
-    std::vector<Vessel> LoadedVessels;
+namespace ScatterManager {
+    std::vector<Scatter> LoadedScatters;
 }
 
 static std::string expandTokens(const std::string &str) {
@@ -46,9 +46,9 @@ static std::string expandTokens(const std::string &str) {
     return result;
 }
 
-VesselManager::Vessel* VesselManager::ParseVessel(std::string data) {
+ScatterManager::Scatter* ScatterManager::ParseScatter(std::string data) {
     json j = json::parse(data);
-    VesselManager::Vessel* vessel = new VesselManager::Vessel;
+    ScatterManager::Scatter* scatter = new ScatterManager::Scatter;
 
     std::string urisRaw = j.value("RobloxURIs", "");
     std::stringstream ss(urisRaw);
@@ -56,35 +56,35 @@ VesselManager::Vessel* VesselManager::ParseVessel(std::string data) {
     while (std::getline(ss, token, ',')) {
         token.erase(0, token.find_first_not_of(" \t"));
         token.erase(token.find_last_not_of(" \t") + 1);
-        vessel->RobloxURIs.push_back(token);
+        scatter->RobloxURIs.push_back(token);
     }
 
-    vessel->RobloxRunCommand = expandTokens(j.value("RobloxRunCommand", ""));
-    vessel->VesselTitle = j.value("VesselTitle", "");
+    scatter->RobloxRunCommand = expandTokens(j.value("RobloxRunCommand", ""));
+    scatter->ScatterTitle = j.value("ScatterTitle", "");
     
     if (j.contains("AppDataDirectories") && j["AppDataDirectories"].is_array()) {
         for (const auto &entry : j["AppDataDirectories"]) {
-            VesselManager::AppDataDirectory dir;
+            ScatterManager::AppDataDirectory dir;
             dir.path  = expandTokens(entry.value("path", ""));
             dir.label = entry.value("label", "");
-            vessel->AppDataDirectories.push_back(dir);
+            scatter->AppDataDirectories.push_back(dir);
         }
     }
-    return vessel;
+    return scatter;
 }
 
-VesselManager::VesselInstallResult VesselManager::InstallVessel(VesselManager::Vessel* vessel) {
-    VesselInstallResult result = VesselInstallResult::VINSTALLUNKNOWNENVIRONMENT;
+ScatterManager::ScatterInstallResult ScatterManager::InstallScatter(ScatterManager::Scatter* scatter) {
+    ScatterInstallResult result = ScatterInstallResult::SINSTALLUNKNOWNENVIRONMENT;
 
 #ifdef __linux__
-    QString title = QString::fromStdString(vessel->VesselTitle);
+    QString title = QString::fromStdString(scatter->ScatterTitle);
     QString safeTitle = title.toLower().replace(" ", "-");
     QString desktopPath = QDir::homePath() + "/.local/share/applications/nativestrapper-" + safeTitle + ".desktop";
     QString execPath = QCoreApplication::applicationFilePath();
 
     // build MimeType from RobloxURIs vector
     QString mimeType;
-    for (const auto &uri : vessel->RobloxURIs) {
+    for (const auto &uri : scatter->RobloxURIs) {
         mimeType += "x-scheme-handler/" + QString::fromStdString(uri).trimmed() + ";";
     }
 
@@ -92,7 +92,7 @@ VesselManager::VesselInstallResult VesselManager::InstallVessel(VesselManager::V
         "[Desktop Entry]\n"
         "Type=Application\n"
         "Name=" + title + "\n"
-        "Exec=" + execPath + " --vessel " + safeTitle + " %u\n"
+        "Exec=" + execPath + " --scatter " + safeTitle + " %u\n"
         "MimeType=" + mimeType + "\n"
         "Terminal=false\n"
         "NoDisplay=true\n";
@@ -106,32 +106,32 @@ VesselManager::VesselInstallResult VesselManager::InstallVessel(VesselManager::V
     }
 
     // register each URI handler
-    for (const auto &uri : vessel->RobloxURIs) {
+    for (const auto &uri : scatter->RobloxURIs) {
         QString scheme = "x-scheme-handler/" + QString::fromStdString(uri).trimmed();
         QProcess::execute("xdg-mime", {"default", "nativestrapper-" + safeTitle + ".desktop", scheme});
     }
     QProcess::execute("update-desktop-database", {QDir::homePath() + "/.local/share/applications/"});
-    result = VesselManager::VesselInstallResult::VINSTALLSUCCESS;
+    result = ScatterManager::ScatterInstallResult::SINSTALLSUCCESS;
 #endif
 
-    if (result == VesselInstallResult::VINSTALLSUCCESS) {
-        LoadedVessels.push_back(*vessel);
-        ConfigSaving::SaveVessels();
+    if (result == ScatterInstallResult::SINSTALLSUCCESS) {
+        LoadedScatters.push_back(*scatter);
+        ConfigSaving::SaveScatters();
     }
 
     return result;
 }
 
-VesselManager::VesselUninstallResult VesselManager::UninstallVessel(VesselManager::Vessel* vessel) {
-    VesselUninstallResult result = VesselUninstallResult::VUNINSTALLUNKNOWNENVIRONMENT;
+ScatterManager::ScatterUninstallResult ScatterManager::UninstallScatter(ScatterManager::Scatter* scatter) {
+    ScatterUninstallResult result = ScatterUninstallResult::SUNINSTALLUNKNOWNENVIRONMENT;
 #ifdef __linux__
-    QString safeTitle = QString::fromStdString(vessel->VesselTitle).toLower().replace(" ", "-");
+    QString safeTitle = QString::fromStdString(scatter->ScatterTitle).toLower().replace(" ", "-");
     QString desktopPath = QDir::homePath() + "/.local/share/applications/nativestrapper-" + safeTitle + ".desktop";
 
     QString mimeappsPath = QDir::homePath() + "/.config/mimeapps.list";
     QSettings mimeapps(mimeappsPath, QSettings::IniFormat);
     mimeapps.beginGroup("Default Applications");
-    for (const auto &uri : vessel->RobloxURIs) {
+    for (const auto &uri : scatter->RobloxURIs) {
         mimeapps.remove("x-scheme-handler/" + QString::fromStdString(uri).trimmed());
     }
     mimeapps.endGroup();
@@ -140,20 +140,20 @@ VesselManager::VesselUninstallResult VesselManager::UninstallVessel(VesselManage
     QFile file(desktopPath);
     if (file.exists()) {
         if (!file.remove()) {
-            result = VesselManager::VesselUninstallResult::VUNINSTALLFAILED;
+            result = ScatterManager::ScatterUninstallResult::SUNINSTALLFAILED;
         }
     }
 
     QProcess::execute("update-desktop-database", {QDir::homePath() + "/.local/share/applications/"});
 
-    result = VesselManager::VesselUninstallResult::VUNINSTALLSUCCESS;
+    result = ScatterManager::ScatterUninstallResult::SUNINSTALLSUCCESS;
 #endif
 
-    if (result == VesselUninstallResult::VUNINSTALLSUCCESS) {
-        LoadedVessels.erase(std::remove_if(LoadedVessels.begin(), LoadedVessels.end(),
-            [&](const Vessel &s) { return s.VesselTitle == vessel->VesselTitle; }
-        ), LoadedVessels.end());
-        ConfigSaving::SaveVessels();
+    if (result == ScatterUninstallResult::SUNINSTALLSUCCESS) {
+        LoadedScatters.erase(std::remove_if(LoadedScatters.begin(), LoadedScatters.end(),
+            [&](const Scatter &s) { return s.ScatterTitle == scatter->ScatterTitle; }
+        ), LoadedScatters.end());
+        ConfigSaving::SaveScatters();
     }
 
     return result;

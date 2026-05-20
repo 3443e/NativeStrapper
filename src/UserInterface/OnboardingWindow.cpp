@@ -1,7 +1,7 @@
 #include "UserInterface/OnboardingWindow.hpp"
 #include "UserInterface/SettingsWindow.hpp"
-#include "UserInterface/VesselInfoWindow.hpp"
-#include "VesselManager.hpp"
+#include "UserInterface/ScatterInfoWindow.hpp"
+#include "ScatterManager.hpp"
 #include <QCoreApplication>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -71,10 +71,10 @@ OnboardingWindow::OnboardingWindow() {
 
     rightLayout->addSpacing(6);
 
-    QLabel *vesselTitleLabel = new QLabel("Loaded Vessels:");
-    vesselTitleLabel->setAlignment(Qt::AlignCenter);
-    vesselTitleLabel->setStyleSheet("color: #ffffff; font-size: 10px;");
-    rightLayout->addWidget(vesselTitleLabel, 0, Qt::AlignHCenter);
+    QLabel *scatterTitleLabel = new QLabel("Loaded Scatters:");
+    scatterTitleLabel->setAlignment(Qt::AlignCenter);
+    scatterTitleLabel->setStyleSheet("color: #ffffff; font-size: 10px;");
+    rightLayout->addWidget(scatterTitleLabel, 0, Qt::AlignHCenter);
 
     rightLayout->addSpacing(2);
 
@@ -84,7 +84,7 @@ OnboardingWindow::OnboardingWindow() {
     statusLayout->setContentsMargins(0, 0, 0, 0);
     statusLayout->setAlignment(Qt::AlignCenter);
 
-    statusLabel = new QLabel("No vessels loaded :(");
+    statusLabel = new QLabel("No scatters loaded :(");
     statusLabel->setAlignment(Qt::AlignCenter);
     statusLabel->setStyleSheet(
         "color: #888888;"
@@ -95,8 +95,8 @@ OnboardingWindow::OnboardingWindow() {
     );
     statusLayout->addWidget(statusLabel);
 
-    vesselList = new QListWidget();
-    vesselList->setStyleSheet(
+    scatterList = new QListWidget();
+    scatterList->setStyleSheet(
         "QListWidget {"
         "  background-color: #333333;"
         "  color: #cccccc;"
@@ -107,7 +107,7 @@ OnboardingWindow::OnboardingWindow() {
         "QListWidget::item { padding: 2px 6px; }"
         "QListWidget::item:selected { background-color: #444444; }"
     );
-    statusLayout->addWidget(vesselList);
+    statusLayout->addWidget(scatterList);
 
     rightLayout->addWidget(statusContainer, 0, Qt::AlignHCenter);
     rightLayout->addStretch();
@@ -138,8 +138,8 @@ OnboardingWindow::OnboardingWindow() {
     importBtn->setStyleSheet(btnStyle);
     QObject::connect(importBtn, &QPushButton::clicked, [this]() {
         QString path = QFileDialog::getOpenFileName(
-            this, "Import Vessel", QString(),
-            "Vessel Files (*.json);;All Files (*)"
+            this, "Import Scatter", QString(),
+            "Scatter Files (*.json);;All Files (*)"
         );
         if (path.isEmpty()) return;
 
@@ -150,43 +150,42 @@ OnboardingWindow::OnboardingWindow() {
         std::string contents = in.readAll().toStdString();
         file.close();
 
-        VesselManager::Vessel *vessel = VesselManager::ParseVessel(contents);
-        if (!vessel) return;
+        ScatterManager::Scatter *scatter = ScatterManager::ParseScatter(contents);
+        if (!scatter) return;
 
         QMessageBox warn(this);
-        warn.setWindowTitle("Import Vessel");
+        warn.setWindowTitle("Import Scatter");
         warn.setText(QString(
             "You are about to install \"%1\".\n\n"
-            "Only import vessels from sources you trust. "
-            "A vessel can run arbitrary commands on your system.\n\n"
+            "Only import scatters from sources you trust. "
+            "A scatter can run arbitrary commands on your system.\n\n"
             "This will also register it as your Roblox URI handler."
-        ).arg(QString::fromStdString(vessel->VesselTitle)));
+        ).arg(QString::fromStdString(scatter->ScatterTitle)));
         warn.setIcon(QMessageBox::Warning);
         warn.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
         if (warn.exec() != QMessageBox::Ok) {
-            delete vessel;
+            delete scatter;
             return;
         }
 
-        auto result = VesselManager::InstallVessel(vessel);
-        if (result == VesselManager::VesselInstallResult::VINSTALLUNKNOWNENVIRONMENT) {
-            QMessageBox::critical(this, "Error", "Installing vessels is not supported on this platform.");
-            delete vessel;
+        auto result = ScatterManager::InstallScatter(scatter);
+        if (result == ScatterManager::ScatterInstallResult::SINSTALLUNKNOWNENVIRONMENT) {
+            QMessageBox::critical(this, "Error", "Installing scatters is not supported on this platform.");
+            delete scatter;
             return;
         }
 
-        delete vessel;
-        refreshVesselView();
+        refreshScatterView();
     });
 
     viewBtn = new QPushButton("View");
     viewBtn->setStyleSheet(btnStyle);
     viewBtn->setEnabled(false);
     QObject::connect(viewBtn, &QPushButton::clicked, [this]() {
-        int row = vesselList->currentRow();
-        if (row < 0 || row >= (int)VesselManager::LoadedVessels.size()) return;
+        int row = scatterList->currentRow();
+        if (row < 0 || row >= (int)ScatterManager::LoadedScatters.size()) return;
 
-        VesselInfoWindow *w = new VesselInfoWindow(VesselManager::LoadedVessels[row], this);
+        ScatterInfoWindow *w = new ScatterInfoWindow(ScatterManager::LoadedScatters[row], this);
         w->exec();
     });
 
@@ -194,29 +193,29 @@ OnboardingWindow::OnboardingWindow() {
     uninstallBtn->setStyleSheet(btnStyle);
     uninstallBtn->setEnabled(false);
     QObject::connect(uninstallBtn, &QPushButton::clicked, [this]() {
-        int row = vesselList->currentRow();
-        if (row < 0 || row >= (int)VesselManager::LoadedVessels.size()) return;
+        int row = scatterList->currentRow();
+        if (row < 0 || row >= (int)ScatterManager::LoadedScatters.size()) return;
 
-        VesselManager::Vessel &vessel = VesselManager::LoadedVessels[row];
+        ScatterManager::Scatter &scatter = ScatterManager::LoadedScatters[row];
 
         QMessageBox warn(this);
-        warn.setWindowTitle("Uninstall Vessel");
+        warn.setWindowTitle("Uninstall Scatter");
         warn.setText(QString(
             "Are you sure you want to uninstall \"%1\"?\n\n"
             "This will remove it as your Roblox URI handler."
-        ).arg(QString::fromStdString(vessel.VesselTitle)));
+        ).arg(QString::fromStdString(scatter.ScatterTitle)));
         warn.setIcon(QMessageBox::Warning);
         warn.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
         if (warn.exec() != QMessageBox::Ok) return;
 
-        VesselManager::UninstallVessel(&vessel);
+        ScatterManager::UninstallScatter(&scatter);
         viewBtn->setEnabled(false);
         uninstallBtn->setEnabled(false);
-        refreshVesselView();
+        refreshScatterView();
     });
 
-    QObject::connect(vesselList, &QListWidget::itemSelectionChanged, [this]() {
-        bool selected = vesselList->currentRow() >= 0;
+    QObject::connect(scatterList, &QListWidget::itemSelectionChanged, [this]() {
+        bool selected = scatterList->currentRow() >= 0;
         viewBtn->setEnabled(selected);
         uninstallBtn->setEnabled(selected);
     });
@@ -230,23 +229,23 @@ OnboardingWindow::OnboardingWindow() {
     layout->addWidget(rightWidget);
     setCentralWidget(root);
 
-    refreshVesselView();
+    refreshScatterView();
 }
 
-void OnboardingWindow::refreshVesselView() {
-    bool hasVessels = !VesselManager::LoadedVessels.empty();
+void OnboardingWindow::refreshScatterView() {
+    bool hasScatters = !ScatterManager::LoadedScatters.empty();
 
-    statusLabel->setVisible(!hasVessels);
-    vesselList->setVisible(hasVessels);
+    statusLabel->setVisible(!hasScatters);
+    scatterList->setVisible(hasScatters);
 
-    if (hasVessels) {
-        int prevRow = vesselList->currentRow();
-        vesselList->clear();
-        for (const auto &vessel : VesselManager::LoadedVessels) {
-            vesselList->addItem(QString::fromStdString(vessel.VesselTitle));
+    if (hasScatters) {
+        int prevRow = scatterList->currentRow();
+        scatterList->clear();
+        for (const auto &scatter : ScatterManager::LoadedScatters) {
+            scatterList->addItem(QString::fromStdString(scatter.ScatterTitle));
         }
-        if (prevRow >= 0 && prevRow < vesselList->count()) {
-            vesselList->setCurrentRow(prevRow);
+        if (prevRow >= 0 && prevRow < scatterList->count()) {
+            scatterList->setCurrentRow(prevRow);
         }
     }
 }
