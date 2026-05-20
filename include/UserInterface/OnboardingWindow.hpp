@@ -11,9 +11,8 @@ public:
 
 private:
     QLabel *statusLabel;
-    QListWidget *scatterList;
-    QPushButton *uninstallBtn;
-    QPushButton *toggleBtn;
+    QListWidget *vesselList;
     QPushButton *viewBtn;
-    void refreshScatterView();
+    QPushButton *uninstallBtn;
+    void refreshVesselView();
 };

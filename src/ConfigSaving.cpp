@@ -1,5 +1,5 @@
 #include "ConfigSaving.hpp"
-#include "ScatterManager.hpp"
+#include "VesselManager.hpp"
 #include "json.hpp"
 #include <fstream>
 #include <QStandardPaths>
@@ -14,32 +14,32 @@ static QString getDataDir() {
     return dir;
 }
 
-void ConfigSaving::SaveScatters() {
-    json scatters = json::array();
+void ConfigSaving::SaveVessels() {
+    json vessels = json::array();
 
-    for (const auto &scatter : ScatterManager::LoadedScatters) {
+    for (const auto &vessel : VesselManager::LoadedVessels) {
         json s;
-        s["ScatterTitle"] = scatter.ScatterTitle;
-        s["RobloxURI"] = scatter.RobloxURI;
-        s["RobloxRunCommand"] = scatter.RobloxRunCommand;
+        s["VesselTitle"] = vessel.VesselTitle;
+        s["RobloxURI"] = vessel.RobloxURI;
+        s["RobloxRunCommand"] = vessel.RobloxRunCommand;
         json dirs = json::array();
-        for (const auto &dir : scatter.AppDataDirectories) {
+        for (const auto &dir : vessel.AppDataDirectories) {
             json d;
             d["path"]  = dir.path;
             d["label"] = dir.label;
             dirs.push_back(d);
         }
         s["AppDataDirectories"] = dirs;
-        s["RobloxURIs"] = scatter.RobloxURIs;
-        scatters.push_back(s);
+        s["RobloxURIs"] = vessel.RobloxURIs;
+        vessels.push_back(s);
     }
 
-    std::ofstream file((getDataDir() + "/scatters.json").toStdString());
-    file << scatters.dump(4);
+    std::ofstream file((getDataDir() + "/vessels.json").toStdString());
+    file << vessels.dump(4);
 }
 
-void ConfigSaving::LoadScatters() {
-    std::ifstream file((getDataDir() + "/scatters.json").toStdString());
+void ConfigSaving::LoadVessels() {
+    std::ifstream file((getDataDir() + "/vessels.json").toStdString());
     if (!file.is_open()) return;
 
     json j;
@@ -51,25 +51,25 @@ void ConfigSaving::LoadScatters() {
 
     if (!j.is_array()) return;
 
-    ScatterManager::LoadedScatters.clear();
+    VesselManager::LoadedVessels.clear();
     for (const auto &s : j) {
-        ScatterManager::Scatter scatter;
-        scatter.ScatterTitle = s.value("ScatterTitle", "");
-        scatter.RobloxURI = s.value("RobloxURI", "");
-        scatter.RobloxRunCommand = s.value("RobloxRunCommand", "");
+        VesselManager::Vessel vessel;
+        vessel.VesselTitle = s.value("VesselTitle", "");
+        vessel.RobloxURI = s.value("RobloxURI", "");
+        vessel.RobloxRunCommand = s.value("RobloxRunCommand", "");
         if (s.contains("AppDataDirectories") && s["AppDataDirectories"].is_array()) {
             for (const auto &entry : s["AppDataDirectories"]) {
-                ScatterManager::AppDataDirectory dir;
+                VesselManager::AppDataDirectory dir;
                 dir.path = entry.value("path", "");
                 dir.label = entry.value("label", "");
-                scatter.AppDataDirectories.push_back(dir);
+                vessel.AppDataDirectories.push_back(dir);
             }
         }
         if (s.contains("RobloxURIs") && s["RobloxURIs"].is_array()) {
             for (const auto &uri : s["RobloxURIs"]) {
-                scatter.RobloxURIs.push_back(uri.get<std::string>());
+                vessel.RobloxURIs.push_back(uri.get<std::string>());
             }
         }
-        ScatterManager::LoadedScatters.push_back(scatter);
+        VesselManager::LoadedVessels.push_back(vessel);
     }
 }

@@ -1,5 +1,5 @@
 {
-  "ScatterTitle": "Korone - Roblox revival thing",
+  "VesselTitle": "Korone - Roblox revival thing",
   "RobloxURIs": "pekora, pekora-player",
   "RobloxRunCommand": "wine /home/%user/.wine/drive_c/users/a/AppData/Local/Pekora/Versions/version-cde8fee1a1e747d4/PekoraPlayerLauncher.exe %u", 
   "AppDataDirectories": [

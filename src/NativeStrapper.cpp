@@ -3,12 +3,12 @@
 #include <QPalette>
 #include <QMessageBox>
 #include "UserInterface/OnboardingWindow.hpp"
-#include "ScatterManager.hpp"
+#include "VesselManager.hpp"
 #include "ConfigSaving.hpp"
 
 struct ArgConfig {
     char* URI = NULL;
-    char* ScatterTitle = NULL;
+    char* VesselTitle = NULL;
 };
 
 int main(int argc, char *argv[]) {
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     app.setPalette(dark);
     app.setStyle("Fusion");
 
-    ConfigSaving::LoadScatters();
+    ConfigSaving::LoadVessels();
 
     // Argument parsing section
     /*--------------------------------------------------------------*/
@@ -49,9 +49,9 @@ int main(int argc, char *argv[]) {
     for (int argi = 1; argi < argc; argi++) {
         if (strcmp(argv[argi], "--test") == 0) {
             // placeholder
-        } else if (strcmp(argv[argi], "--scatter") == 0) {
+        } else if (strcmp(argv[argi], "--vessel") == 0) {
             if (argi + 1 < argc) {
-                argConfig.ScatterTitle = argv[++argi];
+                argConfig.VesselTitle = argv[++argi];
             }
         } else {
             argConfig.URI = argv[argi]; /* anything else is just an URI */
@@ -59,14 +59,14 @@ int main(int argc, char *argv[]) {
     }
     /*--------------------------------------------------------------*/
 
-    if (argConfig.URI && argConfig.ScatterTitle) {
-        QString safeArg = QString::fromStdString(std::string(argConfig.ScatterTitle)).toLower().replace(" ", "-");
+    if (argConfig.URI && argConfig.VesselTitle) {
+        QString safeArg = QString::fromStdString(std::string(argConfig.VesselTitle)).toLower().replace(" ", "-");
 
-        for (auto &scatter : ScatterManager::LoadedScatters) {
-            QString safeTitle = QString::fromStdString(scatter.ScatterTitle).toLower().replace(" ", "-");
+        for (auto &vessel : VesselManager::LoadedVessels) {
+            QString safeTitle = QString::fromStdString(vessel.VesselTitle).toLower().replace(" ", "-");
 
             if (safeTitle == safeArg) {
-                std::string cmd = scatter.RobloxRunCommand;
+                std::string cmd = vessel.RobloxRunCommand;
                 size_t pos = cmd.find("%u");
                 if (pos != std::string::npos) {
                     cmd.replace(pos, 2, argConfig.URI);
@@ -75,11 +75,11 @@ int main(int argc, char *argv[]) {
             }
         }
         
-        QMessageBox::critical(nullptr, "NativeStrapper", QString("Scatter \"%1\" not found. Please open NativeStrapper and re-import it.").arg(argConfig.ScatterTitle));
+        QMessageBox::critical(nullptr, "NativeStrapper", QString("Vessel \"%1\" not found. Please open NativeStrapper and re-import it.").arg(argConfig.VesselTitle));
         return 1;
     }
 
-    // got a URI but no scatter, open GUI
+    // got a URI but no vessel, open GUI
     OnboardingWindow w;
     w.show();
     return app.exec();
