@@ -2,7 +2,6 @@
 #include "ScatterManager.hpp"
 #include "json.hpp"
 #include <fstream>
-#include <sstream>
 #include <QStandardPaths>
 #include <QDir>
 #include <QString>
@@ -23,7 +22,14 @@ void ConfigSaving::SaveScatters() {
         s["ScatterTitle"] = scatter.ScatterTitle;
         s["RobloxURI"] = scatter.RobloxURI;
         s["RobloxRunCommand"] = scatter.RobloxRunCommand;
-        s["RobloxAppDataDirectory"] = scatter.RobloxAppDataDirectory;
+        json dirs = json::array();
+        for (const auto &dir : scatter.AppDataDirectories) {
+            json d;
+            d["path"]  = dir.path;
+            d["label"] = dir.label;
+            dirs.push_back(d);
+        }
+        s["AppDataDirectories"] = dirs;
         s["RobloxURIs"] = scatter.RobloxURIs;
         scatters.push_back(s);
     }
@@ -51,7 +57,14 @@ void ConfigSaving::LoadScatters() {
         scatter.ScatterTitle = s.value("ScatterTitle", "");
         scatter.RobloxURI = s.value("RobloxURI", "");
         scatter.RobloxRunCommand = s.value("RobloxRunCommand", "");
-        scatter.RobloxAppDataDirectory = s.value("RobloxAppDataDirectory", "");
+        if (s.contains("AppDataDirectories") && s["AppDataDirectories"].is_array()) {
+            for (const auto &entry : s["AppDataDirectories"]) {
+                ScatterManager::AppDataDirectory dir;
+                dir.path = entry.value("path", "");
+                dir.label = entry.value("label", "");
+                scatter.AppDataDirectories.push_back(dir);
+            }
+        }
         if (s.contains("RobloxURIs") && s["RobloxURIs"].is_array()) {
             for (const auto &uri : s["RobloxURIs"]) {
                 scatter.RobloxURIs.push_back(uri.get<std::string>());

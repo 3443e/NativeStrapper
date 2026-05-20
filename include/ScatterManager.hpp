@@ -4,13 +4,18 @@
 #include <vector>
 
 namespace ScatterManager {
+    struct AppDataDirectory {
+        std::string path;
+        std::string label;
+    };
+    
     struct Scatter {
         bool Active = true;
         std::string RobloxURI;
         std::vector<std::string> RobloxURIs;
         std::string RobloxRunCommand;
-        std::string RobloxAppDataDirectory;
         std::string ScatterTitle;
+        std::vector<AppDataDirectory> AppDataDirectories;
     };
     
     extern std::vector<Scatter> LoadedScatters;

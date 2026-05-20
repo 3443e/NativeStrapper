@@ -20,7 +20,7 @@ public:
 
         makeRow("URI", scatter.RobloxURI);
         makeRow("Run Command", scatter.RobloxRunCommand);
-        makeRow("AppData Dir", scatter.RobloxAppDataDirectory);
+        //makeRow("AppData Dir", scatter.RobloxAppDataDirectory);
 
         setStyleSheet("background-color: #2a2a2a;");
     }

@@ -1,6 +1,8 @@
 {
   "ScatterTitle": "Sober - A roblox runtime for linux.",
   "RobloxURIs": "roblox, roblox-player",
-  "RobloxRunCommand": "flatpak run org.vinegarhq.Sober %u", 
-  "RobloxAppDataDirectory": "~/.var/app/org.vinegarhq.Sober/data/sober/appData"
+  "RobloxRunCommand": "flatpak run org.vinegarhq.Sober %u",
+  "AppDataDirectories": [
+    {"path": "/home/%user/.var/app/org.vinegarhq.Sober/data/sober/appData", "label": "Sober"}
+  ]
 }

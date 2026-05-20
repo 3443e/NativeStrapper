@@ -14,10 +14,42 @@ namespace ScatterManager {
     std::vector<Scatter> LoadedScatters;
 }
 
+static std::string expandTokens(const std::string &str) {
+    std::string result = str;
+
+    // %home / %user token replacement
+#ifdef _WIN32
+    const char *user = getenv("USERNAME");
+    const char *home = getenv("USERPROFILE");
+#else
+    const char *user = getenv("USER");
+    if (!user) user = getenv("LOGNAME");
+    const char *home = getenv("HOME");
+#endif
+
+    auto replace = [&](const std::string &token, const char *value) {
+        if (!value) return;
+        size_t pos;
+        while ((pos = result.find(token)) != std::string::npos) {
+            // make sure it's not part of a longer token like %username
+            size_t after = pos + token.size();
+            if (after < result.size() && (isalnum(result[after]) || result[after] == '_')) {
+                break;
+            } 
+            result.replace(pos, token.size(), value);
+        }
+    };
+
+    replace("%user", user);
+    replace("%home", home);
+
+    return result;
+}
+
 ScatterManager::Scatter* ScatterManager::ParseScatter(std::string data) {
     json j = json::parse(data);
-
     ScatterManager::Scatter* scatter = new ScatterManager::Scatter;
+
     std::string urisRaw = j.value("RobloxURIs", "");
     std::stringstream ss(urisRaw);
     std::string token;
@@ -27,10 +59,17 @@ ScatterManager::Scatter* ScatterManager::ParseScatter(std::string data) {
         scatter->RobloxURIs.push_back(token);
     }
 
-    scatter->RobloxAppDataDirectory = j.value("RobloxAppDataDirectory", "");
-    scatter->RobloxRunCommand = j.value("RobloxRunCommand", "");
+    scatter->RobloxRunCommand = expandTokens(j.value("RobloxRunCommand", ""));
     scatter->ScatterTitle = j.value("ScatterTitle", "");
     
+    if (j.contains("AppDataDirectories") && j["AppDataDirectories"].is_array()) {
+        for (const auto &entry : j["AppDataDirectories"]) {
+            ScatterManager::AppDataDirectory dir;
+            dir.path  = expandTokens(entry.value("path", ""));
+            dir.label = entry.value("label", "");
+            scatter->AppDataDirectories.push_back(dir);
+        }
+    }
     return scatter;
 }
 
