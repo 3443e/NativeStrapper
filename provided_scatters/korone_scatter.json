@@ -1,23 +1,24 @@
 {
   "ScatterTitle": "Korone - Roblox revival thing",
-  "RobloxURIs": "pekora, pekora-player",
-  "RobloxRunCommand": "wine /home/%user/.wine/drive_c/users/a/AppData/Local/Pekora/Versions/version-cde8fee1a1e747d4/PekoraPlayerLauncher.exe %u", 
-  "AppDataDirectories": [
-    {"path": "/home/%user/.wine/drive_c/users/a/AppData/Local/Pekora/Versions/version-cde8fee1a1e747d4/2021M", "label": "2021M"},
-    {"path": "/home/%user/.wine/drive_c/users/a/AppData/Local/Pekora/Versions/version-cde8fee1a1e747d4/2020L", "label": "2020L"},
-    {"path": "/home/%user/.wine/drive_c/users/a/AppData/Local/Pekora/Versions/version-cde8fee1a1e747d4/2018L", "label": "2018L"},
-    {"path": "/home/%user/.wine/drive_c/users/a/AppData/Local/Pekora/Versions/version-cde8fee1a1e747d4/2017L", "label": "2017L"}
-  ],
+  "RobloxURIs": ["pekora", "pekora-player"],
+  "RobloxRunCommand": "wine /home/%user/.wine/drive_c/users/a/AppData/Local/Pekora/Versions/%currentversion/PekoraPlayerLauncher.exe %u", 
   "BootstrapDownload": {
-    "Version": "",
-    "Latest": [
-      {"url": "", "token": "2017L"},
-      {"url": "", "token": "2020L"}
+    "CurrentVersion": [
+      {"system": "grep -oP '\"app_version\"\\s*:\\s*\"\\K[^\"]+' /home/a/.var/app/org.vinegarhq.Sober/data/sober/state", "token": "currentver"}
+    ],
+    "LatestVersion": [
+      {"url": "https://apkpure.com/roblox-android-2025/com.roblox.client", "token": "curlres", "system": "echo %curlres grep -oP '[\\\\d]+\\\\.[\\\\d]+\\\\.[\\\\d]+'"},
+      {"url": "", "token": "2020L", "system": "command idk you can use %2017L here too and %currentver if you want"}
     ],
     "Download": [
-      {"url": "https://setup.pekora.zip/download/%2017L", "directory": "/home/%user/idk"},
-      {"url": "https://setup.pekora.zip/download/%2020L", "directory": "/home/%user/idk"}
+      {"url": "https://setup.pekora.zip/download/%2017L", "directory": "/home/%user/idk"}
     ],
     "AfterDownload": ["script 1", "script 2", "script 3"]
-  }
+  },
+  "AppDataDirectories": [
+    {"path": "/home/%user/.wine/drive_c/users/a/AppData/Local/Pekora/Versions/%currentversion/2021M", "label": "2021M"},
+    {"path": "/home/%user/.wine/drive_c/users/a/AppData/Local/Pekora/Versions/%currentversion/2020L", "label": "2020L"},
+    {"path": "/home/%user/.wine/drive_c/users/a/AppData/Local/Pekora/Versions/%currentversion/2018L", "label": "2018L"},
+    {"path": "/home/%user/.wine/drive_c/users/a/AppData/Local/Pekora/Versions/%currentversion/2017L", "label": "2017L"}
+  ]
 }

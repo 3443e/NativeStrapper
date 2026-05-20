@@ -47,16 +47,25 @@ static std::string expandTokens(const std::string &str) {
 }
 
 ScatterManager::Scatter* ScatterManager::ParseScatter(std::string data) {
+try { /* indentation evil */
     json j = json::parse(data);
     ScatterManager::Scatter* scatter = new ScatterManager::Scatter;
 
-    std::string urisRaw = j.value("RobloxURIs", "");
-    std::stringstream ss(urisRaw);
-    std::string token;
-    while (std::getline(ss, token, ',')) {
-        token.erase(0, token.find_first_not_of(" \t"));
-        token.erase(token.find_last_not_of(" \t") + 1);
-        scatter->RobloxURIs.push_back(token);
+    if (j.contains("RobloxURIs")) {
+        if (j["RobloxURIs"].is_array()) {
+            for (const auto &uri : j["RobloxURIs"]) {
+                scatter->RobloxURIs.push_back(uri.get<std::string>());
+            }
+        } else if (j["RobloxURIs"].is_string()) {  /* comma separated */
+            std::string urisRaw = j["RobloxURIs"].get<std::string>();
+            std::stringstream ss(urisRaw);
+            std::string token;
+            while (std::getline(ss, token, ',')) {
+                token.erase(0, token.find_first_not_of(" \t"));
+                token.erase(token.find_last_not_of(" \t") + 1);
+                scatter->RobloxURIs.push_back(token);
+            }
+        }
     }
 
     scatter->RobloxRunCommand = expandTokens(j.value("RobloxRunCommand", ""));
@@ -70,7 +79,92 @@ ScatterManager::Scatter* ScatterManager::ParseScatter(std::string data) {
             scatter->AppDataDirectories.push_back(dir);
         }
     }
+    if (j.contains("BootstrapDownload")) {
+        auto &b = j["BootstrapDownload"];
+        scatter->HasBootstrap = true;
+
+        // parse CurrentVersion
+        if (b.contains("CurrentVersion") && b["CurrentVersion"].is_array()) {
+            for (const auto &entry : b["CurrentVersion"]) {
+                BootstrapVersionEntry e;
+                e.system = entry.value("system", "");
+                e.token = entry.value("token", "");
+                scatter->Bootstrap.CurrentVersion.push_back(e);
+            }
+        }
+
+        // parse LatestVersion
+        if (b.contains("LatestVersion") && b["LatestVersion"].is_array()) {
+            for (const auto &entry : b["LatestVersion"]) {
+                BootstrapVersionEntry e;
+                e.url = entry.value("url", "");
+                e.system = entry.value("system", "");
+                e.token = entry.value("token", "");
+                scatter->Bootstrap.LatestVersion.push_back(e);
+            }
+        }
+
+        // needs to have same amount as fields/entires/arrays or whatever
+        if (scatter->Bootstrap.CurrentVersion.size() != scatter->Bootstrap.LatestVersion.size()) {
+            scatter->HasBootstrap = false;
+            scatter->BootstrapError.error = BootstrapParseError::BPARSE_VERSION_COUNT_MISMATCH;
+
+            auto currentSize = scatter->Bootstrap.CurrentVersion.size();
+            auto latestSize = scatter->Bootstrap.LatestVersion.size();
+
+            auto currentWord = (currentSize == 1) ? "entry" : "entries";
+            auto latestWord  = (latestSize == 1) ? "entry" : "entries";
+
+            scatter->BootstrapError.message = "CurrentVersion has " + std::to_string(currentSize) + " " + currentWord + " but LatestVersion has " + std::to_string(latestSize) + " " + latestWord + ", they must match.";
+        }
+
+        for (const auto &e : scatter->Bootstrap.CurrentVersion) {
+            if (e.token.empty()) {
+                scatter->HasBootstrap = false;
+                scatter->BootstrapError.error = BootstrapParseError::BPARSE_MISSING_TOKEN;
+                scatter->BootstrapError.message = "A CurrentVersion entry is missing a token.";
+            }
+            if (e.system.empty()) {
+                scatter->HasBootstrap = false;
+                scatter->BootstrapError.error = BootstrapParseError::BPARSE_INVALID_CURRENT_VERSION;
+                scatter->BootstrapError.message = "A CurrentVersion entry is missing a system command.";
+            }
+        }
+        
+        for (const auto &e : scatter->Bootstrap.LatestVersion) {
+            if (e.token.empty()) {
+                scatter->HasBootstrap = false;
+                scatter->BootstrapError.error = BootstrapParseError::BPARSE_MISSING_TOKEN;
+                scatter->BootstrapError.message = "A LatestVersion entry is missing a token.";
+            }
+            if (e.url.empty() && e.system.empty()) {
+                scatter->HasBootstrap = false;
+                scatter->BootstrapError.error = BootstrapParseError::BPARSE_INVALID_LATEST_VERSION;
+                scatter->BootstrapError.message = "A LatestVersion entry must have either a url or a system command.";
+            }
+        }
+
+        // parse Download
+        if (b.contains("Download") && b["Download"].is_array()) {
+            for (const auto &entry : b["Download"]) {
+                BootstrapDownloadEntry e;
+                e.url = entry.value("url", "");
+                e.directory = expandTokens(entry.value("directory", ""));
+                scatter->Bootstrap.Download.push_back(e);
+            }
+        }
+
+        // parse AfterDownload
+        if (b.contains("AfterDownload") && b["AfterDownload"].is_array()) {
+            for (const auto &cmd : b["AfterDownload"]) {
+                scatter->Bootstrap.AfterDownload.push_back(cmd.get<std::string>());
+            }
+        }
+    }
     return scatter;
+} catch (const std::exception &e) {
+    return nullptr;
+}
 }
 
 ScatterManager::ScatterInstallResult ScatterManager::InstallScatter(ScatterManager::Scatter* scatter) {

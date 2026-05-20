@@ -1,3 +1,4 @@
+/* hmmmmmmmmmmmmmmmmmmmmmmmmm */
 #include "UserInterface/OnboardingWindow.hpp"
 #include "UserInterface/SettingsWindow.hpp"
 #include "UserInterface/ScatterInfoWindow.hpp"
@@ -151,8 +152,11 @@ OnboardingWindow::OnboardingWindow() {
         file.close();
 
         ScatterManager::Scatter *scatter = ScatterManager::ParseScatter(contents);
-        if (!scatter) return;
-
+        if (!scatter) { /* illegal stuff happen, very scary */
+            QMessageBox::critical(this, "Error", "Failed to parse scatter file. Make sure it is valid JSON.");
+            return;
+        }
+        
         QMessageBox warn(this);
         warn.setWindowTitle("Import Scatter");
         warn.setText(QString(
@@ -167,12 +171,16 @@ OnboardingWindow::OnboardingWindow() {
             delete scatter;
             return;
         }
-
         auto result = ScatterManager::InstallScatter(scatter);
+        
         if (result == ScatterManager::ScatterInstallResult::SINSTALLUNKNOWNENVIRONMENT) {
             QMessageBox::critical(this, "Error", "Installing scatters is not supported on this platform.");
             delete scatter;
             return;
+        }
+
+        if (scatter->HasBootstrap == false && scatter->BootstrapError.error != ScatterManager::BootstrapParseError::BPARSE_OK) {
+            QMessageBox::warning(this, "Bootstrap Warning", QString("Scatter was installed but its BootstrapDownload section has an error:\n\n%1\n\nUpdating may not work correctly.").arg(QString::fromStdString(scatter->BootstrapError.message)));
         }
 
         refreshScatterView();
