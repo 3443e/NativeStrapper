@@ -2,10 +2,12 @@
 #include <QApplication>
 #include <QPalette>
 #include <QMessageBox>
+#include "UserInterface/BootstrapWindow.hpp"
 #include "UserInterface/OnboardingWindow.hpp"
 #include "ScatterManager.hpp"
 #include "ConfigSaving.hpp"
 #include "MainBootstrapper.hpp"
+#include "Logger.hpp"
 
 struct ArgConfig {
     char* URI = NULL;
@@ -66,6 +68,14 @@ int main(int argc, char *argv[]) {
             QString safeTitle = QString::fromStdString(scatter.ScatterTitle).toLower().replace(" ", "-");
             // find which installed scatter file was summoned (ok)
             if (safeTitle == safeArg) {
+                BootstrapWindow w;
+                w.show();
+                app.processEvents();
+                Logger::OnLog = [&w](std::string message, Logger::LogSeverity severity, std::string from) {
+                    w.setLog(QString::fromStdString(message));
+                    QApplication::processEvents();
+                };
+                
                 MainBootstrapper::MainStartResult result = MainBootstrapper::StartStrappin(&scatter, argConfig.URI);
                 return 0;
             }

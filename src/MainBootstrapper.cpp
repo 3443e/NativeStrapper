@@ -175,6 +175,15 @@ static bool UpdateArtifactVersions(ScatterManager::Scatter* scatter, MainBootstr
     return true;
 }
 
+static void RunAfterDownloadScripts(ScatterManager::Scatter* scatter, MainBootstrapper::BootstrapArtifact &artifact) {
+    for (const auto &cmd : scatter->Bootstrap.AfterDownload) {
+        std::string expanded = ExpandTokens(cmd, artifact.Tokens);
+        Logger::Log("Running AfterDownload command: " + expanded, Logger::LogSeverity::SINFO, "RunAfterDownload");
+        std::string result = ShellUtils::RunCommand(expanded);
+        Logger::Log("Result: " + result, Logger::LogSeverity::SLOG, "RunAfterDownload");
+    }
+}
+
 MainBootstrapper::MainStartResult MainBootstrapper::StartStrappin(ScatterManager::Scatter* scatter, char* URI) {
     // properly configured bootstrap stuff
     if (scatter->HasBootstrap) {
@@ -200,9 +209,10 @@ MainBootstrapper::MainStartResult MainBootstrapper::StartStrappin(ScatterManager
             bool UpdateArtifactResult = UpdateArtifactVersions(scatter, artifact);
             if (!UpdateArtifactResult) {
                 Logger::Log("Failed to download file(s).", Logger::LogSeverity::SERROR, "UpdateArtifactVersions");
+            } else {
+                Logger::Log("Downloaded everything successfuly.", Logger::LogSeverity::SSUCCESS, "UpdateArtifactVersions");
+                RunAfterDownloadScripts(scatter, artifact);
             }
-
-            Logger::Log("Downloaded everything successfuly.", Logger::LogSeverity::SSUCCESS, "UpdateArtifactVersions");
         } else {
             Logger::Log("All up to date!", Logger::LogSeverity::SSUCCESS, "MainBootstrapper");
         }

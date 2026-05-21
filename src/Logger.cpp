@@ -53,7 +53,10 @@ const char* Logger::SeverityColor(Logger::LogSeverity severity) {
     }
 }
 
+std::function<void(std::string, Logger::LogSeverity, std::string)> Logger::OnLog = nullptr;
+
 void Logger::Log(std::string message, Logger::LogSeverity severity, std::string from) {
+    if (OnLog) OnLog(message, severity, from);
     std::ostringstream out;
 
     out << "[" << GetTime() << "] ";
