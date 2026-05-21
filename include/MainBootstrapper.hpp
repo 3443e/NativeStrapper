@@ -17,8 +17,16 @@ namespace MainBootstrapper {
         std::vector<std::string> LatestVersions;   // results in order from LatestVersion entries
         std::vector<int> OutdatedIndices;          // which indices need updating
 
+        bool Failed;
         bool UpdateAvailable;
         std::string FailReason;
+
+        float DownloadProgress = 0.0f;
+        long long DownloadedBytes = 0;
+        long long TotalBytes = 0;
+        double EstimatedSecondsRemaining = 0.0;
+        
+        int CompletedDownloads = 0;
 
         TokenMap Tokens; // keep the full token map too for AfterDownload expansion
     };

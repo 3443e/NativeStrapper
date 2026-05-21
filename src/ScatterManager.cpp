@@ -105,7 +105,7 @@ try { /* indentation evil */
                 scatter->Bootstrap.LatestVersion.push_back(e);
             }
         }
-        
+
         for (const auto &e : scatter->Bootstrap.LatestVersion) {
             if (e.token.empty() && e.file.empty()) {
                 scatter->HasBootstrap = false;
@@ -167,7 +167,7 @@ try { /* indentation evil */
             for (const auto &entry : b["Download"]) {
                 BootstrapDownloadEntry e;
                 e.url = entry.value("url", "");
-                e.directory = expandTokens(entry.value("directory", ""));
+                e.out = expandTokens(entry.value("out", ""));
                 scatter->Bootstrap.Download.push_back(e);
             }
         }

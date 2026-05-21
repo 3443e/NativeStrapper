@@ -26,7 +26,7 @@ namespace ScatterManager {
 
     struct BootstrapDownloadEntry {
         std::string url;
-        std::string directory;
+        std::string out;
     };
 
     struct BootstrapDownload {

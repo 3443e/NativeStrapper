@@ -6,19 +6,20 @@
     {"path": "/home/%user/.var/app/org.vinegarhq.Sober/data/sober/appData", "label": "Sober"}
   ],
   "BootstrapDownload": {
-    "CurrentVersion": [
-      {"system": "grep -oP '\"app_version\"\\s*:\\s*\"\\K[^\"]+' /home/a/.var/app/org.vinegarhq.Sober/data/sober/state", "token": "currentver"},
-      {"system": "grep -oP '\"app_version\"\\s*:\\s*\"\\K[^\"]+' /home/a/.var/app/org.vinegarhq.Sober/data/sober/state", "token": "currentver2"},
-      {"system": "grep -oP '\"app_version\"\\s*:\\s*\"\\K[^\"]+' /home/a/.var/app/org.vinegarhq.Sober/data/sober/state", "token": "currentver3"}
-    ],
-    "LatestVersion": [
-      {"url": "https://apkpure.com/roblox-android-2025/com.roblox.client", "token": "latestver3", "file": "/tmp/apkpure-out.out", "system": "echo \"2.720.1167\""},
-      {"url": "https://apkpure.com/roblox-android-2025/com.roblox.client", "token": "latestver", "file": "/tmp/apkpure-out.out", "system": "cat /tmp/apkpure-out.out | grep -oP '[\\d]+\\.[\\d]+\\.[\\d]+' | head -1"},
-      {"url": "https://apkpure.com/roblox-android-2025/com.roblox.client", "token": "latestver2", "file": "/tmp/apkpure-out.out", "system": "cat /tmp/apkpure-out.out | grep -oP '[\\d]+\\.[\\d]+\\.[\\d]+' | head -1"}  
-    ],
-    "Download": [
-      {"url": "https://setup.pekora.zip/download/%2017L", "directory": "/home/%user/idk"}
-    ],
+    "CurrentVersion": [{
+      "system": "grep -oP '\"app_version\"\\s*:\\s*\"\\K[^\"]+' /home/a/.var/app/org.vinegarhq.Sober/data/sober/state",
+      "token": "currentver"
+    }],
+    "LatestVersion": [{
+        "url": "https://apkpure.com/roblox-android-2025/com.roblox.client",
+        "token": "latestver",
+        "file": "/tmp/apkpure-out.out",
+        "system": "cat /tmp/apkpure-out.out | grep -oP '[\\d]+\\.[\\d]+\\.[\\d]+' | head -1"
+    }],
+    "Download": [{
+      "url": "https://play.googleapis.com/download/by-token/download?token=AOTCm0RiZc0Rw4ZiT9fciEdOu_Y1-7FFGHcTAOAtVfxoRbfyhpj4ktVKBkin7ka-idrMX3NVO6rEo5qNdmO8jWy2yhhQZ1NuD83slasK8UEAbajW4QojbqSoW9CQvIvyOCUeBb_op-2zff7oL39XOzmVadHN_NSgqO2ANsFVABG-uCS2KIuzfnCjdun7kAhFNWjaGPw0rXzhXIhCAiS1ov-TfMNNyPcbo9Yljbs3tFT3MNCxUegiW8RLk0VQ-Q-v-ygNiqLTOMneVoCCcTG8eb7gp1BZj1WuXHWUms9RJ-XX7h2PjAJpBEPhKUX7wbFAOCwdxLOq0CC4pSowec-PbB-lM_5wnz0FuxO_Vlx8geBaMI4HoWqId484Kp5G69sZkhVWejqBYxs6GUvylusSlXDUyf0Qww&cpn=QiLdqEMdNyJtxP-E",
+      "out": "/home/%user/test.apk"
+    }],
     "AfterDownload": ["script 1", "script 2", "script 3"]
   }
 }

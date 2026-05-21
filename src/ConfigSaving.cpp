@@ -59,7 +59,7 @@ void ConfigSaving::SaveScatters() {
             for (const auto &e : scatter.Bootstrap.Download) {
                 json entry;
                 entry["url"] = e.url;
-                entry["directory"] = e.directory;
+                entry["out"] = e.out;
                 download.push_back(entry);
             }
             bootstrap["Download"] = download;
@@ -145,7 +145,7 @@ void ConfigSaving::LoadScatters() {
                 for (const auto &entry : b["Download"]) {
                     ScatterManager::BootstrapDownloadEntry e;
                     e.url = entry.value("url", "");
-                    e.directory = entry.value("directory", "");
+                    e.out = entry.value("out", "");
                     scatter.Bootstrap.Download.push_back(e);
                 }
             }

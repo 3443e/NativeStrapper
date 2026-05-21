@@ -1,12 +1,8 @@
 #include "MainBootstrapper.hpp"
 #include "ShellUtils.hpp"
+#include "NetworkManagement.hpp"
 #include "Logger.hpp"
 #include <QProcess>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QEventLoop>
-#include <QUrl>
 #include <fstream>
 
 // launches roblox by running the RobloxRunCommand scatter field.
@@ -16,29 +12,6 @@ static int LaunchRoblox(ScatterManager::Scatter* scatter, char* URI) {
     if (pos == std::string::npos) return 1;
     cmd.replace(pos, 2, URI);
     return system(cmd.c_str());
-}
-
-// again got this from somewhere idk
-static std::string FetchURL(const std::string &url) {
-    QNetworkAccessManager manager;
-    QNetworkRequest request(QUrl(QString::fromStdString(url)));
-    request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0");
-
-    QNetworkReply *reply = manager.get(request);
-
-    // block until done
-    QEventLoop loop;
-    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-
-    if (reply->error() != QNetworkReply::NoError) {
-        reply->deleteLater();
-        return "";
-    }
-
-    std::string result = reply->readAll().toStdString();
-    reply->deleteLater();
-    return result;
 }
 
 // MainBootstrapper::TokenMap
@@ -106,7 +79,7 @@ static bool ManageLatestVersionField(ScatterManager::Scatter* scatter, MainBoots
         if (!entry.url.empty()) {
             std::string url = ExpandTokens(entry.url, artifact.Tokens);
             Logger::Log("Fetching URL: " + url, Logger::LogSeverity::SINFO, "ManageLatestVersionField");
-            result = FetchURL(url);
+            result = NetworkManagement::FetchURL(url);
             if (result.empty()) {
                 Logger::Log("URL fetch returned empty: " + url, Logger::LogSeverity::SERROR, "ManageLatestVersionField");
                 return false;
@@ -147,7 +120,7 @@ static void CompareArtifactVersions(MainBootstrapper::BootstrapArtifact &artifac
         if (i >= (int)artifact.LatestVersions.size()) break;
 
         const std::string &current = artifact.CurrentVersions[i];
-        const std::string &latest  = artifact.LatestVersions[i];
+        const std::string &latest = artifact.LatestVersions[i];
 
         Logger::Log("Comparing [" + std::to_string(i) + "] current: " + current + " vs latest: " + latest, Logger::LogSeverity::SLOG, "CompareArtifactVersions");
 
@@ -157,6 +130,36 @@ static void CompareArtifactVersions(MainBootstrapper::BootstrapArtifact &artifac
         }
     }
     artifact.UpdateAvailable = !artifact.OutdatedIndices.empty();
+}
+
+// loops through everything inside the download field and downloads it duh
+static bool UpdateArtifactVersions(ScatterManager::Scatter* scatter, MainBootstrapper::BootstrapArtifact &artifact) {
+    for (int i = 0; i < (int)scatter->Bootstrap.Download.size(); i++) {
+        const auto &entry = scatter->Bootstrap.Download[i];
+        std::string url = ExpandTokens(entry.url, artifact.Tokens);
+        std::string out = ExpandTokens(entry.out, artifact.Tokens);
+
+        Logger::Log("Downloading: " + url + " -> " + out, Logger::LogSeverity::SINFO, "UpdateArtifactVersions");
+
+        std::string path = NetworkManagement::DownloadFile(url, out, [&](long long downloaded, long long total) {
+            artifact.DownloadedBytes = downloaded;
+            artifact.TotalBytes = total;
+            if (total > 0) artifact.DownloadProgress = (float)downloaded / (float)total;
+            Logger::Log("Progress: " + std::to_string((int)(artifact.DownloadProgress * 100)) + "%", Logger::LogSeverity::SLOG, "UpdateArtifactVersions");
+        });
+
+        if (path.empty()) {
+            Logger::Log("Download failed for index " + std::to_string(i), Logger::LogSeverity::SERROR, "UpdateArtifactVersions");
+            artifact.Failed = true;
+            artifact.FailReason = "Download failed for: " + url;
+            return false;
+        }
+
+        artifact.Tokens["download_" + std::to_string(i)] = path;
+        artifact.CompletedDownloads++;
+        Logger::Log("Download complete: " + path, Logger::LogSeverity::SINFO, "UpdateArtifactVersions");
+    }
+    return true;
 }
 
 MainBootstrapper::MainStartResult MainBootstrapper::StartStrappin(ScatterManager::Scatter* scatter, char* URI) {
@@ -181,9 +184,14 @@ MainBootstrapper::MainStartResult MainBootstrapper::StartStrappin(ScatterManager
 
         if (artifact.UpdateAvailable) {
             Logger::Log(std::to_string(artifact.OutdatedIndices.size()) + " component(s) outdated, update needed", Logger::LogSeverity::SWARN, "MainBootstrapper");
-            // TODO: RunDownload(scatter, artifact)
+            bool UpdateArtifactResult = UpdateArtifactVersions(scatter, artifact);
+            if (!UpdateArtifactResult) {
+                Logger::Log("Failed to download file(s).", Logger::LogSeverity::SERROR, "UpdateArtifactVersions");
+            }
+
+            Logger::Log("Downloaded everything successfuly.", Logger::LogSeverity::SSUCCESS, "UpdateArtifactVersions");
         } else {
-            Logger::Log("All up to date!", Logger::LogSeverity::SINFO, "MainBootstrapper");
+            Logger::Log("All up to date!", Logger::LogSeverity::SSUCCESS, "MainBootstrapper");
         }
     }
 
