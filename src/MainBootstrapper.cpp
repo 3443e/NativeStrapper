@@ -141,11 +141,24 @@ static bool UpdateArtifactVersions(ScatterManager::Scatter* scatter, MainBootstr
 
         Logger::Log("Downloading: " + url + " -> " + out, Logger::LogSeverity::SINFO, "UpdateArtifactVersions");
 
+        auto startTime = std::chrono::steady_clock::now();
+
         std::string path = NetworkManagement::DownloadFile(url, out, [&](long long downloaded, long long total) {
             artifact.DownloadedBytes = downloaded;
             artifact.TotalBytes = total;
             if (total > 0) artifact.DownloadProgress = (float)downloaded / (float)total;
-            Logger::Log("Progress: " + std::to_string((int)(artifact.DownloadProgress * 100)) + "%", Logger::LogSeverity::SLOG, "UpdateArtifactVersions");
+
+            // calculate speed and estimated time and set them to argifact
+            auto now = std::chrono::steady_clock::now();
+            double elapsed = std::chrono::duration<double>(now - startTime).count();
+            if (elapsed > 0) {
+                artifact.SpeedBytesPerSecond = (double)downloaded / elapsed;
+                if (artifact.SpeedBytesPerSecond > 0 && total > 0) {
+                    artifact.EstimatedSecondsRemaining = (double)(total - downloaded) / artifact.SpeedBytesPerSecond;
+                }
+            }
+
+            Logger::Log("Progress: " + std::to_string((int)(artifact.DownloadProgress * 100)) + "%" + " | Speed: " + std::to_string((int)(artifact.SpeedBytesPerSecond / 1024)) + " KB/s" + " | ETA: " + std::to_string((int)artifact.EstimatedSecondsRemaining) + "s", Logger::LogSeverity::SLOG, "UpdateArtifactVersions");
         });
 
         if (path.empty()) {

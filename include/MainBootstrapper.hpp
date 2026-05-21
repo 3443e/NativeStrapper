@@ -24,10 +24,10 @@ namespace MainBootstrapper {
         float DownloadProgress = 0.0f;
         long long DownloadedBytes = 0;
         long long TotalBytes = 0;
-        double EstimatedSecondsRemaining = 0.0;
-        
         int CompletedDownloads = 0;
 
+        double SpeedBytesPerSecond = 0.0;
+        double EstimatedSecondsRemaining = 0.0;
         TokenMap Tokens; // keep the full token map too for AfterDownload expansion
     };
     
