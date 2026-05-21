@@ -1,31 +1,49 @@
 [
 {
   "directory": "/home/a/Documents/Projects/NativeStrapper/build",
-  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/nativestrapper_autogen/mocs_compilation.cpp.o -c /home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/mocs_compilation.cpp",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -isystem /usr/include/qt/QtNetwork -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/nativestrapper_autogen/mocs_compilation.cpp.o -c /home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/mocs_compilation.cpp",
   "file": "/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/mocs_compilation.cpp",
   "output": "CMakeFiles/nativestrapper.dir/nativestrapper_autogen/mocs_compilation.cpp.o"
 },
 {
   "directory": "/home/a/Documents/Projects/NativeStrapper/build",
-  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/src/NativeStrapper.cpp.o -c /home/a/Documents/Projects/NativeStrapper/src/NativeStrapper.cpp",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -isystem /usr/include/qt/QtNetwork -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/src/ConfigSaving.cpp.o -c /home/a/Documents/Projects/NativeStrapper/src/ConfigSaving.cpp",
+  "file": "/home/a/Documents/Projects/NativeStrapper/src/ConfigSaving.cpp",
+  "output": "CMakeFiles/nativestrapper.dir/src/ConfigSaving.cpp.o"
+},
+{
+  "directory": "/home/a/Documents/Projects/NativeStrapper/build",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -isystem /usr/include/qt/QtNetwork -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/src/MainBootstrapper.cpp.o -c /home/a/Documents/Projects/NativeStrapper/src/MainBootstrapper.cpp",
+  "file": "/home/a/Documents/Projects/NativeStrapper/src/MainBootstrapper.cpp",
+  "output": "CMakeFiles/nativestrapper.dir/src/MainBootstrapper.cpp.o"
+},
+{
+  "directory": "/home/a/Documents/Projects/NativeStrapper/build",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -isystem /usr/include/qt/QtNetwork -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/src/NativeStrapper.cpp.o -c /home/a/Documents/Projects/NativeStrapper/src/NativeStrapper.cpp",
   "file": "/home/a/Documents/Projects/NativeStrapper/src/NativeStrapper.cpp",
   "output": "CMakeFiles/nativestrapper.dir/src/NativeStrapper.cpp.o"
 },
 {
   "directory": "/home/a/Documents/Projects/NativeStrapper/build",
-  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/src/ScatterManager.cpp.o -c /home/a/Documents/Projects/NativeStrapper/src/ScatterManager.cpp",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -isystem /usr/include/qt/QtNetwork -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/src/ScatterManager.cpp.o -c /home/a/Documents/Projects/NativeStrapper/src/ScatterManager.cpp",
   "file": "/home/a/Documents/Projects/NativeStrapper/src/ScatterManager.cpp",
   "output": "CMakeFiles/nativestrapper.dir/src/ScatterManager.cpp.o"
 },
 {
   "directory": "/home/a/Documents/Projects/NativeStrapper/build",
-  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/src/UserInterface/OnboardingWindow.cpp.o -c /home/a/Documents/Projects/NativeStrapper/src/UserInterface/OnboardingWindow.cpp",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -isystem /usr/include/qt/QtNetwork -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/src/ShellUtils.cpp.o -c /home/a/Documents/Projects/NativeStrapper/src/ShellUtils.cpp",
+  "file": "/home/a/Documents/Projects/NativeStrapper/src/ShellUtils.cpp",
+  "output": "CMakeFiles/nativestrapper.dir/src/ShellUtils.cpp.o"
+},
+{
+  "directory": "/home/a/Documents/Projects/NativeStrapper/build",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -isystem /usr/include/qt/QtNetwork -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/src/UserInterface/OnboardingWindow.cpp.o -c /home/a/Documents/Projects/NativeStrapper/src/UserInterface/OnboardingWindow.cpp",
   "file": "/home/a/Documents/Projects/NativeStrapper/src/UserInterface/OnboardingWindow.cpp",
   "output": "CMakeFiles/nativestrapper.dir/src/UserInterface/OnboardingWindow.cpp.o"
 },
 {
   "directory": "/home/a/Documents/Projects/NativeStrapper/build",
-  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/src/UserInterface/SettingsWindow.cpp.o -c /home/a/Documents/Projects/NativeStrapper/src/UserInterface/SettingsWindow.cpp",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/a/Documents/Projects/NativeStrapper/build/nativestrapper_autogen/include -I/home/a/Documents/Projects/NativeStrapper/include -I/home/a/Documents/Projects/NativeStrapper/external -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -isystem /usr/include/qt/QtNetwork -std=gnu++17 -fPIC -o CMakeFiles/nativestrapper.dir/src/UserInterface/SettingsWindow.cpp.o -c /home/a/Documents/Projects/NativeStrapper/src/UserInterface/SettingsWindow.cpp",
   "file": "/home/a/Documents/Projects/NativeStrapper/src/UserInterface/SettingsWindow.cpp",
   "output": "CMakeFiles/nativestrapper.dir/src/UserInterface/SettingsWindow.cpp.o"
 }

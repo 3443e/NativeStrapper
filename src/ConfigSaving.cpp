@@ -39,6 +39,7 @@ void ConfigSaving::SaveScatters() {
                 json entry;
                 entry["system"] = e.system;
                 entry["token"] = e.token;
+                entry["file"] = e.file;
                 currentVersion.push_back(entry);
             }
             bootstrap["CurrentVersion"] = currentVersion;
@@ -49,6 +50,7 @@ void ConfigSaving::SaveScatters() {
                 entry["url"] = e.url;
                 entry["system"] = e.system;
                 entry["token"] = e.token;
+                entry["file"] = e.file;
                 latestVersion.push_back(entry);
             }
             bootstrap["LatestVersion"] = latestVersion;
@@ -119,6 +121,7 @@ void ConfigSaving::LoadScatters() {
                     ScatterManager::BootstrapVersionEntry e;
                     e.system = entry.value("system", "");
                     e.token = entry.value("token", "");
+                    e.file = entry.value("file", "");
                     scatter.Bootstrap.CurrentVersion.push_back(e);
                 }
             }
@@ -128,6 +131,7 @@ void ConfigSaving::LoadScatters() {
                     ScatterManager::BootstrapVersionEntry e;
                     e.url = entry.value("url", "");
                     e.system = entry.value("system", "");
+                    e.file = entry.value("file", "");
                     e.token = entry.value("token", "");
                     scatter.Bootstrap.LatestVersion.push_back(e);
                 }

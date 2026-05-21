@@ -3,7 +3,7 @@ project(nativestrapper CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt5 REQUIRED COMPONENTS Widgets Network)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -16,4 +16,4 @@ add_executable(nativestrapper ${SOURCES} ${HEADERS})
 
 target_include_directories(nativestrapper PRIVATE include external)
 
-target_link_libraries(nativestrapper PRIVATE Qt5::Widgets)
+target_link_libraries(nativestrapper PRIVATE Qt5::Widgets Qt5::Network)

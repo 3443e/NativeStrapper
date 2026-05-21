@@ -89,6 +89,7 @@ try { /* indentation evil */
                 BootstrapVersionEntry e;
                 e.system = entry.value("system", "");
                 e.token = entry.value("token", "");
+                e.file = entry.value("file", "");
                 scatter->Bootstrap.CurrentVersion.push_back(e);
             }
         }
@@ -99,8 +100,25 @@ try { /* indentation evil */
                 BootstrapVersionEntry e;
                 e.url = entry.value("url", "");
                 e.system = entry.value("system", "");
+                e.file = entry.value("file", "");
                 e.token = entry.value("token", "");
                 scatter->Bootstrap.LatestVersion.push_back(e);
+            }
+        }
+        
+        for (const auto &e : scatter->Bootstrap.LatestVersion) {
+            if (e.token.empty() && e.file.empty()) {
+                scatter->HasBootstrap = false;
+                scatter->BootstrapError.error = BootstrapParseError::BPARSE_INVALID_LATEST_VERSION;
+                scatter->BootstrapError.message = "A LatestVersion entry must have either a token or a file field.";
+            }
+        }
+
+        for (const auto &e : scatter->Bootstrap.CurrentVersion) {
+            if (e.token.empty() && e.file.empty()) {
+                scatter->HasBootstrap = false;
+                scatter->BootstrapError.error = BootstrapParseError::BPARSE_INVALID_LATEST_VERSION;
+                scatter->BootstrapError.message = "A CurrentVersion entry must have either a token or a file field.";
             }
         }
 

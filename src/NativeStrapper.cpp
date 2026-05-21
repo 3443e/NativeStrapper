@@ -5,6 +5,7 @@
 #include "UserInterface/OnboardingWindow.hpp"
 #include "ScatterManager.hpp"
 #include "ConfigSaving.hpp"
+#include "MainBootstrapper.hpp"
 
 struct ArgConfig {
     char* URI = NULL;
@@ -61,17 +62,12 @@ int main(int argc, char *argv[]) {
 
     if (argConfig.URI && argConfig.ScatterTitle) {
         QString safeArg = QString::fromStdString(std::string(argConfig.ScatterTitle)).toLower().replace(" ", "-");
-
         for (auto &scatter : ScatterManager::LoadedScatters) {
             QString safeTitle = QString::fromStdString(scatter.ScatterTitle).toLower().replace(" ", "-");
-
+            // find which installed scatter file was summoned (ok)
             if (safeTitle == safeArg) {
-                std::string cmd = scatter.RobloxRunCommand;
-                size_t pos = cmd.find("%u");
-                if (pos != std::string::npos) {
-                    cmd.replace(pos, 2, argConfig.URI);
-                }
-                return system(cmd.c_str());
+                MainBootstrapper::MainStartResult result = MainBootstrapper::StartStrappin(&scatter, argConfig.URI);
+                return 0;
             }
         }
         

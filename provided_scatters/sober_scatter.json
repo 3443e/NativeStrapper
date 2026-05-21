@@ -4,5 +4,17 @@
   "RobloxRunCommand": "flatpak run org.vinegarhq.Sober %u",
   "AppDataDirectories": [
     {"path": "/home/%user/.var/app/org.vinegarhq.Sober/data/sober/appData", "label": "Sober"}
-  ]
+  ],
+  "BootstrapDownload": {
+    "CurrentVersion": [
+      {"system": "grep -oP '\"app_version\"\\s*:\\s*\"\\K[^\"]+' /home/a/.var/app/org.vinegarhq.Sober/data/sober/state", "token": "currentver"}
+    ],
+    "LatestVersion": [
+      {"url": "https://apkpure.com/roblox-android-2025/com.roblox.client", "token": "latestver", "file": "/tmp/apkpure-out.out", "system": "cat /tmp/apkpure-out.out | grep -oP '[\\d]+\\.[\\d]+\\.[\\d]+' | head -1"}
+    ],
+    "Download": [
+      {"url": "https://setup.pekora.zip/download/%2017L", "directory": "/home/%user/idk"}
+    ],
+    "AfterDownload": ["script 1", "script 2", "script 3"]
+  }
 }

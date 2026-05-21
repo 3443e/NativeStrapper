@@ -20,6 +20,7 @@ namespace ScatterManager {
     struct BootstrapVersionEntry {
         std::string system;  // command to run
         std::string url;     // url to fetch (for only BootstrapDownload->LatestVersion)
+        std::string file;    // output file for yes
         std::string token;   // token name to store result as
     };
 
