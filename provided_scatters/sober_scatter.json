@@ -7,10 +7,14 @@
   ],
   "BootstrapDownload": {
     "CurrentVersion": [
-      {"system": "grep -oP '\"app_version\"\\s*:\\s*\"\\K[^\"]+' /home/a/.var/app/org.vinegarhq.Sober/data/sober/state", "token": "currentver"}
+      {"system": "grep -oP '\"app_version\"\\s*:\\s*\"\\K[^\"]+' /home/a/.var/app/org.vinegarhq.Sober/data/sober/state", "token": "currentver"},
+      {"system": "grep -oP '\"app_version\"\\s*:\\s*\"\\K[^\"]+' /home/a/.var/app/org.vinegarhq.Sober/data/sober/state", "token": "currentver2"},
+      {"system": "grep -oP '\"app_version\"\\s*:\\s*\"\\K[^\"]+' /home/a/.var/app/org.vinegarhq.Sober/data/sober/state", "token": "currentver3"}
     ],
     "LatestVersion": [
-      {"url": "https://apkpure.com/roblox-android-2025/com.roblox.client", "token": "latestver", "file": "/tmp/apkpure-out.out", "system": "cat /tmp/apkpure-out.out | grep -oP '[\\d]+\\.[\\d]+\\.[\\d]+' | head -1"}
+      {"url": "https://apkpure.com/roblox-android-2025/com.roblox.client", "token": "latestver3", "file": "/tmp/apkpure-out.out", "system": "echo \"2.720.1167\""},
+      {"url": "https://apkpure.com/roblox-android-2025/com.roblox.client", "token": "latestver", "file": "/tmp/apkpure-out.out", "system": "cat /tmp/apkpure-out.out | grep -oP '[\\d]+\\.[\\d]+\\.[\\d]+' | head -1"},
+      {"url": "https://apkpure.com/roblox-android-2025/com.roblox.client", "token": "latestver2", "file": "/tmp/apkpure-out.out", "system": "cat /tmp/apkpure-out.out | grep -oP '[\\d]+\\.[\\d]+\\.[\\d]+' | head -1"}  
     ],
     "Download": [
       {"url": "https://setup.pekora.zip/download/%2017L", "directory": "/home/%user/idk"}

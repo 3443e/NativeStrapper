@@ -7,7 +7,8 @@ namespace Logger {
         SWARN,
         SINFO,
         SERROR,
-        SFATAL
+        SFATAL,
+        SSUCCESS
     };
     void Log(std::string message, LogSeverity, std::string from);
     const char* SeverityColor(LogSeverity severity);

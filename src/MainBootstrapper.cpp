@@ -57,12 +57,12 @@ static std::string ExpandTokens(const std::string &str, const MainBootstrapper::
 // entry->token and entry->file handling.
 static bool HandleBootstrapVersionEntryOutput(std::string result, ScatterManager::BootstrapVersionEntry& entry, MainBootstrapper::TokenMap &tokens) {
     if (!entry.token.empty()) {
-        Logger::Log("Result for token " + entry.token + ": " + result, Logger::LogSeverity::SLOG, "ManageLatestVersionField");
+        Logger::Log("Token " + entry.token + " registered!", Logger::LogSeverity::SLOG, "ManageLatestVersionField");
         tokens[entry.token] = result;
     }
     
     if (!entry.file.empty()) {
-        Logger::Log("Result for file " + entry.file + ": " + result, Logger::LogSeverity::SLOG, "ManageLatestVersionField");
+        Logger::Log("File " + entry.file + " created/updated!", Logger::LogSeverity::SLOG, "ManageLatestVersionField");
         std::string filePath = ExpandTokens(entry.file, tokens);
         std::ofstream f(filePath);
         if (!f.is_open()) {
@@ -76,23 +76,26 @@ static bool HandleBootstrapVersionEntryOutput(std::string result, ScatterManager
     return true;
 }
 
-static bool RunCurrentVersionCommands(ScatterManager::Scatter* scatter, MainBootstrapper::TokenMap &tokens) {
+static bool RunCurrentVersionCommands(ScatterManager::Scatter* scatter, MainBootstrapper::BootstrapArtifact &artifact) {
     for (auto &entry : scatter->Bootstrap.CurrentVersion) {
-        std::string cmd = ExpandTokens(entry.system, tokens);
+        std::string cmd = ExpandTokens(entry.system, artifact.Tokens);
         std::string result = ShellUtils::RunCommand(cmd);
         if (result.empty()) {
             Logger::Log("Command didn't print anything, bad command?", Logger::LogSeverity::SWARN, "RunCurrentVersionCommands");
         }
 
-        if (!HandleBootstrapVersionEntryOutput(result, entry, tokens)) {
-            Logger::Log("Bad output format on CurrentVersion, please use 'token' or 'file'.", Logger::LogSeverity::SERROR, "HandleBootstrapVersionEntryOutput");
+        if (!HandleBootstrapVersionEntryOutput(result, entry, artifact.Tokens)) {
+            Logger::Log("Bad output format on CurrentVersion, please use 'token' or 'file'.", Logger::LogSeverity::SERROR, "RunCurrentVersionCommands");
             return false;
         }
+
+        // store the version in the vector for layer comparaison
+        artifact.CurrentVersions.push_back(result);
     }
     return true;
 }
 
-static bool ManageLatestVersionField(ScatterManager::Scatter* scatter, MainBootstrapper::TokenMap &tokens) {
+static bool ManageLatestVersionField(ScatterManager::Scatter* scatter, MainBootstrapper::BootstrapArtifact &artifact) {
     for (auto &entry : scatter->Bootstrap.LatestVersion) {
         if (entry.token.empty() && entry.file.empty()) { /* this shouldn't happen because we have checks on ScatterManager::ParseScatter() */
             Logger::Log("LatestVersion entry has neither token nor file, skipping", Logger::LogSeverity::SERROR, "ManageLatestVersionField");
@@ -101,7 +104,7 @@ static bool ManageLatestVersionField(ScatterManager::Scatter* scatter, MainBoots
         std::string result = "";
 
         if (!entry.url.empty()) {
-            std::string url = ExpandTokens(entry.url, tokens);
+            std::string url = ExpandTokens(entry.url, artifact.Tokens);
             Logger::Log("Fetching URL: " + url, Logger::LogSeverity::SINFO, "ManageLatestVersionField");
             result = FetchURL(url);
             if (result.empty()) {
@@ -109,14 +112,14 @@ static bool ManageLatestVersionField(ScatterManager::Scatter* scatter, MainBoots
                 return false;
             }
             Logger::Log("URL fetch got " + std::to_string(result.size()) + " bytes", Logger::LogSeverity::SINFO, "ManageLatestVersionField");
-            if (!HandleBootstrapVersionEntryOutput(result, entry, tokens)) {
+            if (!HandleBootstrapVersionEntryOutput(result, entry, artifact.Tokens)) {
                 Logger::Log("Bad output format on LatestVersion, please use 'token' or 'file'.", Logger::LogSeverity::SERROR, "HandleBootstrapVersionEntryOutput");
                 return false;
             }
         }
 
         if (!entry.system.empty()) {
-            std::string cmd = ExpandTokens(entry.system, tokens);
+            std::string cmd = ExpandTokens(entry.system, artifact.Tokens);
             std::string cmdresult = ShellUtils::RunCommand(cmd);
             if (cmdresult.empty()) {
                 Logger::Log("Command returned empty: ", Logger::LogSeverity::SERROR, "ManageLatestVersionField");
@@ -127,29 +130,60 @@ static bool ManageLatestVersionField(ScatterManager::Scatter* scatter, MainBoots
         }
 
         // second run for command output
-        if (!HandleBootstrapVersionEntryOutput(result, entry, tokens)) {
+        if (!HandleBootstrapVersionEntryOutput(result, entry, artifact.Tokens)) {
             Logger::Log("Bad output format on LatestVersion, please use 'token' or 'file'.", Logger::LogSeverity::SERROR, "HandleBootstrapVersionEntryOutput");
             return false;
         }
+
+        // store the version in the vector for layer comparaison
+        artifact.LatestVersions.push_back(result);
     }
     return true;
+}
+
+// sets artifact.UpdateAvailable to true/false, and artifact.OutdatedIndices
+static void CompareArtifactVersions(MainBootstrapper::BootstrapArtifact &artifact) {
+    for (int i = 0; i < (int)artifact.CurrentVersions.size(); i++) {
+        if (i >= (int)artifact.LatestVersions.size()) break;
+
+        const std::string &current = artifact.CurrentVersions[i];
+        const std::string &latest  = artifact.LatestVersions[i];
+
+        Logger::Log("Comparing [" + std::to_string(i) + "] current: " + current + " vs latest: " + latest, Logger::LogSeverity::SLOG, "CompareArtifactVersions");
+
+        if (current != latest) {
+            Logger::Log("Index " + std::to_string(i) + " is outdated", Logger::LogSeverity::SINFO, "CompareArtifactVersions");
+            artifact.OutdatedIndices.push_back(i);
+        }
+    }
+    artifact.UpdateAvailable = !artifact.OutdatedIndices.empty();
 }
 
 MainBootstrapper::MainStartResult MainBootstrapper::StartStrappin(ScatterManager::Scatter* scatter, char* URI) {
     // properly configured bootstrap stuff
     if (scatter->HasBootstrap) {
-        TokenMap tokens;
+        BootstrapArtifact artifact;
 
-        bool CurrentVerResult = RunCurrentVersionCommands(scatter, tokens);
+        bool CurrentVerResult = RunCurrentVersionCommands(scatter, artifact);
         if (!CurrentVerResult) {
             Logger::Log("Failed to get current version, Launching anyway", Logger::LogSeverity::SERROR, "MainBootstrapper");
             // TODO: show some kind of warning
         }
 
-        bool ManageLatestVerResult = ManageLatestVersionField(scatter, tokens);
+        bool ManageLatestVerResult = ManageLatestVersionField(scatter, artifact);
         if (!ManageLatestVerResult) {
             Logger::Log("Failed to get latest version info, Launching anyway", Logger::LogSeverity::SERROR, "MainBootstrapper");
             // TODO: show some kind of warning
+        }
+
+        // sets artifact.UpdateAvailable to true/false, and artifact.OutdatedIndices
+        CompareArtifactVersions(artifact);
+
+        if (artifact.UpdateAvailable) {
+            Logger::Log(std::to_string(artifact.OutdatedIndices.size()) + " component(s) outdated, update needed", Logger::LogSeverity::SWARN, "MainBootstrapper");
+            // TODO: RunDownload(scatter, artifact)
+        } else {
+            Logger::Log("All up to date!", Logger::LogSeverity::SINFO, "MainBootstrapper");
         }
     }
 

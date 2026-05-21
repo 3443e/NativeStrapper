@@ -25,6 +25,8 @@ const char* Logger::SeverityToString(Logger::LogSeverity severity) {
             return "WARN";
         case Logger::LogSeverity::SERROR:
             return "ERROR";
+        case Logger::LogSeverity::SSUCCESS:
+            return "INFO";
         case Logger::LogSeverity::SFATAL:
             return "FATAL";
         default:
@@ -42,6 +44,8 @@ const char* Logger::SeverityColor(Logger::LogSeverity severity) {
             return "\033[33m"; // yellow
         case Logger::LogSeverity::SERROR:
             return "\033[31m"; // red
+        case Logger::LogSeverity::SSUCCESS:
+            return "\033[32m"; // green
         case Logger::LogSeverity::SFATAL:
             return "\033[35m"; // magenta
         default:
