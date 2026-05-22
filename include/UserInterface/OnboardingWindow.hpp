@@ -1,19 +1,17 @@
 #pragma once
 #include <QMainWindow>
 #include <QLabel>
-#include <qlistwidget.h>
-#include <qpushbutton.h>
+#include <QListWidget>
+#include <QPushButton>
 
 class OnboardingWindow : public QMainWindow {
     Q_OBJECT
 public:
     OnboardingWindow();
-
 private:
     QLabel *statusLabel;
-    QListWidget *scatterList;
-    QPushButton *uninstallBtn;
-    QPushButton *toggleBtn;
+    QListWidget *scriptList;
     QPushButton *viewBtn;
-    void refreshScatterView();
+    QPushButton *uninstallBtn;
+    void refreshScriptView();
 };

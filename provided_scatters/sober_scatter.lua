@@ -1,4 +1,4 @@
-scatter = {
+metadata = {
     title = "Sober - A roblox runtime for linux.",
     platform = {"Linux"},
     required = {"strings"},
@@ -46,8 +46,8 @@ function bootstrap(uri)
                 ["sober_version"] = soberlatest
             }
         })
-        local baseapkurl = -- we do some string::match thing here
-        local splitapkurl = -- we do some string::match thing here
+        --local baseapkurl = -- we do some string::match thing here
+        --local splitapkurl = -- we do some string::match thing here
         NativeStrapper.log("Downloading base.apk...")
         NativeStrapper.setStatus("Downloading update...")
         NativeStrapper.download(baseapkurl, "/home/%user/.var/app/org.vinegarhq.Sober/data/sober/packages/x86_64/com.roblox.client/base.apk", function(downloaded, total)

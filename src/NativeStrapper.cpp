@@ -2,11 +2,8 @@
 #include <QApplication>
 #include <QPalette>
 #include <QMessageBox>
-#include "UserInterface/BootstrapWindow.hpp"
 #include "UserInterface/OnboardingWindow.hpp"
-#include "ScatterManager.hpp"
-#include "ConfigSaving.hpp"
-#include "MainBootstrapper.hpp"
+#include "BootstrapScripts/ScriptManager.hpp"
 #include "Logger.hpp"
 
 extern "C" {
@@ -45,7 +42,8 @@ int main(int argc, char *argv[]) {
     app.setPalette(dark);
     app.setStyle("Fusion");
 
-    ConfigSaving::LoadScatters();
+    // moooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+    ScriptManager::LoadScripts(); /* scans the installed-scripts folder and loads everything to ScriptManager::LoadedScripts*/
 
     // Argument parsing section
     /*--------------------------------------------------------------*/
@@ -72,30 +70,23 @@ int main(int argc, char *argv[]) {
     }
     /*--------------------------------------------------------------*/
 
+    
     if (argConfig.URI && argConfig.ScatterTitle) {
         QString safeArg = QString::fromStdString(std::string(argConfig.ScatterTitle)).toLower().replace(" ", "-");
+        /*
         for (auto &scatter : ScatterManager::LoadedScatters) {
             QString safeTitle = QString::fromStdString(scatter.ScatterTitle).toLower().replace(" ", "-");
             // find which installed scatter file was summoned (ok)
             if (safeTitle == safeArg) {
-                BootstrapWindow w;
-                w.show();
-                app.processEvents();
-
-                Logger::OnLog = [&w](std::string message, Logger::LogSeverity severity, std::string from) {
-                    w.setLog(QString::fromStdString(message));
-                    QApplication::processEvents();
-                };
-                
-                MainBootstrapper::MainStartResult result = MainBootstrapper::StartStrappin(&scatter, argConfig.URI, &w);
                 return 0;
             }
         }
-        
+        */
+
         QMessageBox::critical(nullptr, "NativeStrapper", QString("Scatter \"%1\" not found. Please open NativeStrapper and re-import it.").arg(argConfig.ScatterTitle));
         return 1;
     }
-
+    
     // got a URI but no scatter, open GUI
     OnboardingWindow w;
     w.show();

@@ -1,8 +1,6 @@
-/* hmmmmmmmmmmmmmmmmmmmmmmmmm */
 #include "UserInterface/OnboardingWindow.hpp"
 #include "UserInterface/SettingsWindow.hpp"
-#include "UserInterface/ScatterInfoWindow.hpp"
-#include "ScatterManager.hpp"
+#include "BootstrapScripts/ScriptManager.hpp"
 #include <QCoreApplication>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -72,10 +70,10 @@ OnboardingWindow::OnboardingWindow() {
 
     rightLayout->addSpacing(6);
 
-    QLabel *scatterTitleLabel = new QLabel("Loaded Scatters:");
-    scatterTitleLabel->setAlignment(Qt::AlignCenter);
-    scatterTitleLabel->setStyleSheet("color: #ffffff; font-size: 10px;");
-    rightLayout->addWidget(scatterTitleLabel, 0, Qt::AlignHCenter);
+    QLabel *scriptsLabel = new QLabel("Bootstrap Scripts:");
+    scriptsLabel->setAlignment(Qt::AlignCenter);
+    scriptsLabel->setStyleSheet("color: #ffffff; font-size: 10px;");
+    rightLayout->addWidget(scriptsLabel, 0, Qt::AlignHCenter);
 
     rightLayout->addSpacing(2);
 
@@ -85,7 +83,7 @@ OnboardingWindow::OnboardingWindow() {
     statusLayout->setContentsMargins(0, 0, 0, 0);
     statusLayout->setAlignment(Qt::AlignCenter);
 
-    statusLabel = new QLabel("No scatters loaded :(");
+    statusLabel = new QLabel("No scripts loaded :(");
     statusLabel->setAlignment(Qt::AlignCenter);
     statusLabel->setStyleSheet(
         "color: #888888;"
@@ -96,8 +94,8 @@ OnboardingWindow::OnboardingWindow() {
     );
     statusLayout->addWidget(statusLabel);
 
-    scatterList = new QListWidget();
-    scatterList->setStyleSheet(
+    scriptList = new QListWidget();
+    scriptList->setStyleSheet(
         "QListWidget {"
         "  background-color: #333333;"
         "  color: #cccccc;"
@@ -108,7 +106,7 @@ OnboardingWindow::OnboardingWindow() {
         "QListWidget::item { padding: 2px 6px; }"
         "QListWidget::item:selected { background-color: #444444; }"
     );
-    statusLayout->addWidget(scatterList);
+    statusLayout->addWidget(scriptList);
 
     rightLayout->addWidget(statusContainer, 0, Qt::AlignHCenter);
     rightLayout->addStretch();
@@ -135,106 +133,71 @@ OnboardingWindow::OnboardingWindow() {
     btnLayout->setContentsMargins(0, 0, 0, 0);
     btnLayout->setSpacing(4);
 
-    QPushButton *importBtn = new QPushButton("Import");
+    QPushButton *importBtn = new QPushButton("Import Script");
     importBtn->setStyleSheet(btnStyle);
     QObject::connect(importBtn, &QPushButton::clicked, [this]() {
         QString path = QFileDialog::getOpenFileName(
-            this, "Import Scatter", QString(),
-            "Scatter Files (*.json);;All Files (*)"
+            this, "Import Bootstrap Script", QString(),
+            "Bootstrap Scripts (*.lua);;All Files (*)"
         );
         if (path.isEmpty()) return;
 
-        QFile file(path);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
-
-        QTextStream in(&file);
-        std::string contents = in.readAll().toStdString();
-        file.close();
-
-        ScatterManager::Scatter *scatter = ScatterManager::ParseScatter(contents);
-        if (!scatter) { /* illegal stuff happen, very scary */
-            QMessageBox::critical(this, "Error", "Failed to parse scatter file. Make sure it is valid JSON.");
+        // read metadata from the lua file first
+        ScriptManager::BootstrapScript info;
+        if (!ScriptManager::ReadMetadata(path.toStdString(), info)) {
+            QMessageBox::critical(this, "Error", "Failed to read script metadata. Make sure it has a valid metadata table.");
             return;
         }
-        
+
+        // warn the user
         QMessageBox warn(this);
-        warn.setWindowTitle("Import Scatter");
+        warn.setWindowTitle("Import Bootstrap Script");
         warn.setText(QString(
             "You are about to install \"%1\".\n\n"
-            "Only import scatters from sources you trust. "
-            "A scatter can run arbitrary commands on your system.\n\n"
-            "This will also register it as your Roblox URI handler."
-        ).arg(QString::fromStdString(scatter->ScatterTitle)));
+            "Only import scripts from sources you trust. "
+            "A bootstrap script can run arbitrary commands on your system."
+        ).arg(QString::fromStdString(info.title)));
         warn.setIcon(QMessageBox::Warning);
         warn.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-        if (warn.exec() != QMessageBox::Ok) {
-            delete scatter;
-            return;
-        }
-        auto result = ScatterManager::InstallScatter(scatter);
-        
-        if (result == ScatterManager::ScatterInstallResult::SINSTALLUNKNOWNENVIRONMENT) {
-            QMessageBox::critical(this, "Error", "Installing scatters is not supported on this platform.");
-            delete scatter;
+        if (warn.exec() != QMessageBox::Ok) return;
+
+        if (!ScriptManager::InstallScript(path.toStdString())) {
+            QMessageBox::critical(this, "Error", "Failed to install script.");
             return;
         }
 
-        if (result == ScatterManager::ScatterInstallResult::SINSTALLUNSUPPORTEDPLATFORM) {
-            QMessageBox::critical(this, "Error", "This scatter is not supported on your platform.");
-            delete scatter;
-            return;
-        }
-        if (result == ScatterManager::ScatterInstallResult::SINSTALLMISSINGREQUIRED) {
-            QMessageBox::critical(this, "Error", "This scatter requires tools that are not installed on your system.");
-            delete scatter;
-            return;
-        }
-
-        if (scatter->HasBootstrap == false && scatter->BootstrapError.error != ScatterManager::BootstrapParseError::BPARSE_OK) {
-            QMessageBox::warning(this, "Bootstrap Warning", QString("Scatter was installed but its BootstrapDownload section has an error:\n\n%1\n\nUpdating may not work correctly.").arg(QString::fromStdString(scatter->BootstrapError.message)));
-        }
-
-        refreshScatterView();
+        refreshScriptView();
     });
 
     viewBtn = new QPushButton("View");
     viewBtn->setStyleSheet(btnStyle);
     viewBtn->setEnabled(false);
-    QObject::connect(viewBtn, &QPushButton::clicked, [this]() {
-        int row = scatterList->currentRow();
-        if (row < 0 || row >= (int)ScatterManager::LoadedScatters.size()) return;
-
-        ScatterInfoWindow *w = new ScatterInfoWindow(ScatterManager::LoadedScatters[row], this);
-        w->exec();
-    });
 
     uninstallBtn = new QPushButton("Uninstall");
     uninstallBtn->setStyleSheet(btnStyle);
     uninstallBtn->setEnabled(false);
     QObject::connect(uninstallBtn, &QPushButton::clicked, [this]() {
-        int row = scatterList->currentRow();
-        if (row < 0 || row >= (int)ScatterManager::LoadedScatters.size()) return;
+        int row = scriptList->currentRow();
+        if (row < 0 || row >= (int)ScriptManager::LoadedScripts.size()) return;
 
-        ScatterManager::Scatter &scatter = ScatterManager::LoadedScatters[row];
+        const std::string title = ScriptManager::LoadedScripts[row].title;
 
         QMessageBox warn(this);
-        warn.setWindowTitle("Uninstall Scatter");
-        warn.setText(QString(
-            "Are you sure you want to uninstall \"%1\"?\n\n"
-            "This will remove it as your Roblox URI handler."
-        ).arg(QString::fromStdString(scatter.ScatterTitle)));
+        warn.setWindowTitle("Uninstall Script");
+        warn.setText(QString("Are you sure you want to uninstall \"%1\"?")
+            .arg(QString::fromStdString(title)));
         warn.setIcon(QMessageBox::Warning);
         warn.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
         if (warn.exec() != QMessageBox::Ok) return;
 
-        ScatterManager::UninstallScatter(&scatter);
+        ScriptManager::UninstallScript(title);
         viewBtn->setEnabled(false);
         uninstallBtn->setEnabled(false);
-        refreshScatterView();
+        refreshScriptView();
     });
 
-    QObject::connect(scatterList, &QListWidget::itemSelectionChanged, [this]() {
-        bool selected = scatterList->currentRow() >= 0;
+    QObject::connect(scriptList, &QListWidget::itemSelectionChanged, [this]() {
+        bool selected = scriptList->currentRow() >= 0;
         viewBtn->setEnabled(selected);
         uninstallBtn->setEnabled(selected);
     });
@@ -248,23 +211,23 @@ OnboardingWindow::OnboardingWindow() {
     layout->addWidget(rightWidget);
     setCentralWidget(root);
 
-    refreshScatterView();
+    refreshScriptView();
 }
 
-void OnboardingWindow::refreshScatterView() {
-    bool hasScatters = !ScatterManager::LoadedScatters.empty();
+void OnboardingWindow::refreshScriptView() {
+    bool hasScripts = !ScriptManager::LoadedScripts.empty();
 
-    statusLabel->setVisible(!hasScatters);
-    scatterList->setVisible(hasScatters);
+    statusLabel->setVisible(!hasScripts);
+    scriptList->setVisible(hasScripts);
 
-    if (hasScatters) {
-        int prevRow = scatterList->currentRow();
-        scatterList->clear();
-        for (const auto &scatter : ScatterManager::LoadedScatters) {
-            scatterList->addItem(QString::fromStdString(scatter.ScatterTitle));
+    if (hasScripts) {
+        int prevRow = scriptList->currentRow();
+        scriptList->clear();
+        for (const auto &script : ScriptManager::LoadedScripts) {
+            scriptList->addItem(QString::fromStdString(script.title));
         }
-        if (prevRow >= 0 && prevRow < scatterList->count()) {
-            scatterList->setCurrentRow(prevRow);
+        if (prevRow >= 0 && prevRow < scriptList->count()) {
+            scriptList->setCurrentRow(prevRow);
         }
     }
 }
