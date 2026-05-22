@@ -9,12 +9,22 @@
 #include "MainBootstrapper.hpp"
 #include "Logger.hpp"
 
+extern "C" {
+    #include <lua.h>
+    #include <lualib.h>
+    #include <lauxlib.h>
+}
+
 struct ArgConfig {
     char* URI = NULL;
     char* ScatterTitle = NULL;
 };
 
 int main(int argc, char *argv[]) {
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+    luaL_dostring(L, "print('lua works!!')");
+    lua_close(L);
     QApplication app(argc, argv);
 
     QPalette dark;
