@@ -18,6 +18,7 @@ BootstrapWindow::BootstrapWindow() {
     layout->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
     layout->setSpacing(6);
 
+    layout->addStretch(5);
     QLabel *imageLabel = new QLabel();
     QPixmap pixmap(QCoreApplication::applicationDirPath() + "/assets/NativeStrapper.png");
     imageLabel->setPixmap(pixmap.scaled(160, 70, Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -54,7 +55,7 @@ BootstrapWindow::BootstrapWindow() {
 
     layout->addSpacing(4);
 
-    logLabel = new QLabel("[LOG] [UpdateArtifactVersions] Progress: 9% | Speed: 2106 KB/s | ETA: 54s");
+    logLabel = new QLabel("HELLO! :3");
     logLabel->setAlignment(Qt::AlignCenter);
     logLabel->setStyleSheet("font-size: 9px; color: rgba(255, 255, 255, 80);");
     logLabel->setWordWrap(true);
@@ -81,4 +82,12 @@ void BootstrapWindow::closeEvent(QCloseEvent *event) {
 
 void BootstrapWindow::setLog(const QString &text) {
     logLabel->setText(text);
+}
+
+void BootstrapWindow::setStatus(const QString &text) {
+    statusLabel->setText(text);
+}
+
+void BootstrapWindow::setProgress(int value) {
+    progressBar->setValue(value);
 }

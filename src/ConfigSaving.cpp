@@ -31,8 +31,69 @@ void ConfigSaving::SaveScatters() {
         }
         s["AppDataDirectories"] = dirs;
         s["RobloxURIs"] = scatter.RobloxURIs;
+
+        json required = json::array();
+        for (const auto &r : scatter.Required) {
+            required.push_back(r);
+        }
+        s["Required"] = required;
+
+        json platform = json::array();
+        for (const auto &p : scatter.Platform) {
+            platform.push_back(p);
+        }
+        s["Platform"] = platform;
+
         if (scatter.HasBootstrap) {
             json bootstrap;
+
+            json initRequests = json::array();
+            for (const auto &r : scatter.Bootstrap.InitRequests) {
+                json entry;
+                entry["url"] = r.url;
+                entry["token"] = r.token;
+                json headers;
+                for (const auto &[key, val] : r.headers) {
+                    headers[key] = val;
+                }
+                entry["headers"] = headers;
+                initRequests.push_back(entry);
+            }
+            bootstrap["InitRequests"] = initRequests;
+
+
+            json initCommands = json::array();
+            for (const auto &c : scatter.Bootstrap.InitCommands) {
+                json entry;
+                entry["system"] = c.system;
+                entry["token"] = c.token;
+                initCommands.push_back(entry);
+            }
+            bootstrap["InitCommands"] = initCommands;
+
+            json preDownloadRequests = json::array();
+            for (const auto &r : scatter.Bootstrap.PreDownloadRequests) {
+                json entry;
+                entry["url"] = r.url;
+                entry["token"] = r.token;
+                json headers;
+                for (const auto &[key, val] : r.headers) {
+                    headers[key] = val;
+                }
+                entry["headers"] = headers;
+                preDownloadRequests.push_back(entry);
+            }
+            bootstrap["PreDownloadRequests"] = preDownloadRequests;
+
+
+            json preDownloadCommands = json::array();
+            for (const auto &c : scatter.Bootstrap.PreDownloadCommands) {
+                json entry;
+                entry["system"] = c.system;
+                entry["token"] = c.token;
+                preDownloadCommands.push_back(entry);
+            }
+            bootstrap["PreDownloadCommands"] = preDownloadCommands;
 
             json currentVersion = json::array();
             for (const auto &e : scatter.Bootstrap.CurrentVersion) {
@@ -112,9 +173,68 @@ void ConfigSaving::LoadScatters() {
                 scatter.RobloxURIs.push_back(uri.get<std::string>());
             }
         }
+
+        if (s.contains("Required") && s["Required"].is_array()) {
+            for (const auto &r : s["Required"]) {
+                scatter.Required.push_back(r.get<std::string>());
+            }   
+        }
+
+        if (s.contains("Platform") && s["Platform"].is_array()) {
+            for (const auto &p : s["Platform"]) {
+                scatter.Platform.push_back(p.get<std::string>());
+            }
+        }
+                
         if (s.contains("BootstrapDownload")) {
             scatter.HasBootstrap = true;
             auto &b = s["BootstrapDownload"];
+
+            if (b.contains("InitRequests") && b["InitRequests"].is_array()) {
+                for (const auto &entry : b["InitRequests"]) {
+                    ScatterManager::BootstrapInitRequest r;
+                    r.url = entry.value("url", "");
+                    r.token = entry.value("token", "");
+                    if (entry.contains("headers") && entry["headers"].is_object()) {
+                        for (const auto &[key, val] : entry["headers"].items()) {
+                            r.headers[key] = val.get<std::string>();
+                        }
+                    }
+                    scatter.Bootstrap.InitRequests.push_back(r);
+                }
+            }
+
+            if (b.contains("InitCommands") && b["InitCommands"].is_array()) {
+                for (const auto &entry : b["InitCommands"]) {
+                    ScatterManager::BootstrapInitCommand c;
+                    c.system = entry.value("system", "");
+                    c.token = entry.value("token", "");
+                    scatter.Bootstrap.InitCommands.push_back(c);
+                }
+            }
+
+            if (b.contains("PreDownloadRequests") && b["PreDownloadRequests"].is_array()) {
+                for (const auto &entry : b["PreDownloadRequests"]) {
+                    ScatterManager::BootstrapInitRequest r;
+                    r.url = entry.value("url", "");
+                    r.token = entry.value("token", "");
+                    if (entry.contains("headers") && entry["headers"].is_object()) {
+                        for (const auto &[key, val] : entry["headers"].items()) {
+                            r.headers[key] = val.get<std::string>();
+                        }
+                    }
+                    scatter.Bootstrap.PreDownloadRequests.push_back(r);
+                }
+            }
+
+            if (b.contains("PreDownloadCommands") && b["PreDownloadCommands"].is_array()) {
+                for (const auto &entry : b["PreDownloadCommands"]) {
+                    ScatterManager::BootstrapInitCommand c;
+                    c.system = entry.value("system", "");
+                    c.token = entry.value("token", "");
+                    scatter.Bootstrap.PreDownloadCommands.push_back(c);
+                }
+            }
 
             if (b.contains("CurrentVersion") && b["CurrentVersion"].is_array()) {
                 for (const auto &entry : b["CurrentVersion"]) {

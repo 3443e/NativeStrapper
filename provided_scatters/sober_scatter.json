@@ -1,13 +1,18 @@
 {
+  "Required": ["echo", "cat", "grep", "head", "tail", "curl"],
+  "Platform": ["Linux"],
   "ScatterTitle": "Sober - A roblox runtime for linux.",
-  "RobloxURIs": "roblox, roblox-player",
+  "RobloxURIs": ["roblox", "roblox-player"],
   "RobloxRunCommand": "flatpak run org.vinegarhq.Sober %u",
   "AppDataDirectories": [
     {"path": "/home/%user/.var/app/org.vinegarhq.Sober/data/sober/appData", "label": "Sober"}
   ],
   "BootstrapDownload": {
+    "InitCommands": [
+      {"system": "curl -s 'https://sober.vinegarhq.org/app' | grep -oE 's[0-9]+-[0-9]+-x86_64-gnu' | tail -1", "token": "soberlatest"}
+    ],
     "CurrentVersion": [{
-      "system": "grep -oP '\"app_version\"\\s*:\\s*\"\\K[^\"]+' /home/a/.var/app/org.vinegarhq.Sober/data/sober/state",
+      "system": "strings /home/%user/.var/app/org.vinegarhq.Sober/data/sober/packages/x86_64/com.roblox.client/base.apk | grep -Eo '[0-9]{1,3}\\.[0-9]{1,4}\\.[0-9]{1,4}' | awk -F. '$2 > 700' | tail -1",
       "token": "currentver"
     }],
     "LatestVersion": [{
@@ -16,13 +21,13 @@
         "file": "/tmp/apkpure-out.out",
         "system": "cat /tmp/apkpure-out.out | grep -oP '[\\d]+\\.[\\d]+\\.[\\d]+' | head -1"
     }],
-    "Download": [{
-      "url": "https://play.googleapis.com/download/by-token/download?token=AOTCm0RiZc0Rw4ZiT9fciEdOu_Y1-7FFGHcTAOAtVfxoRbfyhpj4ktVKBkin7ka-idrMX3NVO6rEo5qNdmO8jWy2yhhQZ1NuD83slasK8UEAbajW4QojbqSoW9CQvIvyOCUeBb_op-2zff7oL39XOzmVadHN_NSgqO2ANsFVABG-uCS2KIuzfnCjdun7kAhFNWjaGPw0rXzhXIhCAiS1ov-TfMNNyPcbo9Yljbs3tFT3MNCxUegiW8RLk0VQ-Q-v-ygNiqLTOMneVoCCcTG8eb7gp1BZj1WuXHWUms9RJ-XX7h2PjAJpBEPhKUX7wbFAOCwdxLOq0CC4pSowec-PbB-lM_5wnz0FuxO_Vlx8geBaMI4HoWqId484Kp5G69sZkhVWejqBYxs6GUvylusSlXDUyf0Qww&cpn=QiLdqEMdNyJtxP-E",
-      "out": "/home/%user/.var/app/org.vinegarhq.Sober/data/sober/packages/x86_64/com.roblox.client/base.apk"
-    },
-    {
-      "url": "https://play.googleapis.com/download/by-token/download?token=AOTCm0T31xKJslvUu8uZDXKlpd419mTeiT0Aa6boIN2MDhuSXW9wW-8lMTUGS4uCMcFdj4X1UJWYUXq1hToNeC7_wHm0m9annTxGD48hUrluROMVm3IM5MhSvfyeT-0fbXl5z84CM4utML5EcHcOymecJkB3mdofdqOkXKHTblYd8zsW4fPqnXz-ti1QerfETBEVmve5qeNhxp9cTk9wIP-SWBNdTBZj-TQGknDAWfbDm0EmYyqvKCIzW-QwfJPbrT8qBRR_AiHszprtO9L3Lz1VOyQ6kwfmfQ10agu-rg_cOLSuZ9aOvJE_dkE8g-mZbEijNzjCRITwAJ4yMw6g8-xXCINk8QoENSQLpwDJgU2ZkC0lE0wOSsW--VD4PGI_5dqEccNItSWL6UDxiNfXEyeoCAf8d2DaQzQqTW1Gjj93OjQq&cpn=5uYwmptsWdekfaNV",
-      "out": "/home/%user/.var/app/org.vinegarhq.Sober/data/sober/packages/x86_64/com.roblox.client/split_config.x86_64.apk"
-    }]
+    "PreDownloadCommands": [
+      {"system": "curl -s --http2 -X GET \"https://sober.vinegarhq.org/update\" -H \"accept: */*\" -H \"sober_version: %soberlatest\" | grep -oP '\\\"base\\.apk\\\":\\\"\\K[^\\\"]+'", "token": "baseapkurl"},
+      {"system": "curl -s --http2 -X GET \"https://sober.vinegarhq.org/update\" -H \"accept: */*\" -H \"sober_version: %soberlatest\" | jq -r '.urls[\"split_config.x86_64.apk\"]'", "token": "splitapkurl"}
+    ],
+    "Download": [
+      {"url": "%baseapkurl", "out": "/home/%user/.var/app/org.vinegarhq.Sober/data/sober/packages/x86_64/com.roblox.client/base.apk"},
+      {"url": "%splitapkurl", "out": "/home/%user/.var/app/org.vinegarhq.Sober/data/sober/packages/x86_64/com.roblox.client/split_config.x86_64.apk"}
+    ]
   }
 }

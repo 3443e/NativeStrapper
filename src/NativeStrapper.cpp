@@ -71,12 +71,13 @@ int main(int argc, char *argv[]) {
                 BootstrapWindow w;
                 w.show();
                 app.processEvents();
+
                 Logger::OnLog = [&w](std::string message, Logger::LogSeverity severity, std::string from) {
                     w.setLog(QString::fromStdString(message));
                     QApplication::processEvents();
                 };
                 
-                MainBootstrapper::MainStartResult result = MainBootstrapper::StartStrappin(&scatter, argConfig.URI);
+                MainBootstrapper::MainStartResult result = MainBootstrapper::StartStrappin(&scatter, argConfig.URI, &w);
                 return 0;
             }
         }

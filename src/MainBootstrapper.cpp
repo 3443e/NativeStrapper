@@ -49,6 +49,42 @@ static bool HandleBootstrapVersionEntryOutput(std::string result, ScatterManager
     return true;
 }
 
+/* these two functions run before anything / before downloading */
+static bool RunRequests(const std::vector<ScatterManager::BootstrapInitRequest> &requests, MainBootstrapper::BootstrapArtifact &artifact, const std::string &context) {
+    for (const auto &entry : requests) {
+        std::string url = ExpandTokens(entry.url, artifact.Tokens);
+        Logger::Log("Request: " + url, Logger::LogSeverity::SINFO, context);
+
+        std::map<std::string, std::string> headers;
+        for (const auto &[key, val] : entry.headers)
+            headers[key] = ExpandTokens(val, artifact.Tokens);
+
+        std::string result = NetworkManagement::FetchURL(url, headers);
+        if (result.empty()) {
+            Logger::Log("Request failed: " + url, Logger::LogSeverity::SERROR, context);
+            return false;
+        }
+
+        artifact.Tokens[entry.token] = result;
+        Logger::Log("Token " + entry.token + " registered", Logger::LogSeverity::SLOG, context);
+    }
+    return true;
+}
+
+static bool RunCommands(const std::vector<ScatterManager::BootstrapInitCommand> &commands, MainBootstrapper::BootstrapArtifact &artifact, const std::string &context) {
+    for (const auto &entry : commands) {
+        std::string cmd = ExpandTokens(entry.system, artifact.Tokens);
+        Logger::Log("Command: " + cmd, Logger::LogSeverity::SINFO, context);
+
+        std::string result = ShellUtils::RunCommand(cmd);
+        if (result.empty()) Logger::Log("Command returned empty: " + cmd, Logger::LogSeverity::SWARN, context);
+
+        artifact.Tokens[entry.token] = result;
+        Logger::Log("Token " + entry.token + " registered", Logger::LogSeverity::SLOG, context);
+    }
+    return true;
+}
+
 static bool RunCurrentVersionCommands(ScatterManager::Scatter* scatter, MainBootstrapper::BootstrapArtifact &artifact) {
     for (auto &entry : scatter->Bootstrap.CurrentVersion) {
         std::string cmd = ExpandTokens(entry.system, artifact.Tokens);
@@ -133,7 +169,7 @@ static void CompareArtifactVersions(MainBootstrapper::BootstrapArtifact &artifac
 }
 
 // loops through everything inside the download field and downloads it duh
-static bool UpdateArtifactVersions(ScatterManager::Scatter* scatter, MainBootstrapper::BootstrapArtifact &artifact) {
+static bool UpdateArtifactVersions(ScatterManager::Scatter* scatter, MainBootstrapper::BootstrapArtifact &artifact, BootstrapWindow* window) {
     for (int i = 0; i < (int)scatter->Bootstrap.Download.size(); i++) {
         const auto &entry = scatter->Bootstrap.Download[i];
         std::string url = ExpandTokens(entry.url, artifact.Tokens);
@@ -147,6 +183,7 @@ static bool UpdateArtifactVersions(ScatterManager::Scatter* scatter, MainBootstr
             artifact.DownloadedBytes = downloaded;
             artifact.TotalBytes = total;
             if (total > 0) artifact.DownloadProgress = (float)downloaded / (float)total;
+            if (window) window->setProgress((int)(artifact.DownloadProgress * 100));
 
             // calculate speed and estimated time and set them to argifact
             auto now = std::chrono::steady_clock::now();
@@ -184,10 +221,15 @@ static void RunAfterDownloadScripts(ScatterManager::Scatter* scatter, MainBootst
     }
 }
 
-MainBootstrapper::MainStartResult MainBootstrapper::StartStrappin(ScatterManager::Scatter* scatter, char* URI) {
+MainBootstrapper::MainStartResult MainBootstrapper::StartStrappin(ScatterManager::Scatter* scatter, char* URI, BootstrapWindow* window) {
     // properly configured bootstrap stuff
     if (scatter->HasBootstrap) {
         BootstrapArtifact artifact;
+
+        if (window) window->setStatus("Checking for updates...");
+
+        RunRequests(scatter->Bootstrap.InitRequests, artifact, "InitRequests");
+        RunCommands(scatter->Bootstrap.InitCommands, artifact, "InitCommands");
 
         bool CurrentVerResult = RunCurrentVersionCommands(scatter, artifact);
         if (!CurrentVerResult) {
@@ -205,12 +247,19 @@ MainBootstrapper::MainStartResult MainBootstrapper::StartStrappin(ScatterManager
         CompareArtifactVersions(artifact);
 
         if (artifact.UpdateAvailable) {
+            if (window) window->setStatus("Preparing download...");
+            RunRequests(scatter->Bootstrap.PreDownloadRequests, artifact, "PreDownloadRequests");
+            RunCommands(scatter->Bootstrap.PreDownloadCommands, artifact, "PreDownloadCommands");
+
+            if (window) window->setStatus("Upgrading Roblox...");
             Logger::Log(std::to_string(artifact.OutdatedIndices.size()) + " component(s) outdated, update needed", Logger::LogSeverity::SWARN, "MainBootstrapper");
-            bool UpdateArtifactResult = UpdateArtifactVersions(scatter, artifact);
+            bool UpdateArtifactResult = UpdateArtifactVersions(scatter, artifact, window);
             if (!UpdateArtifactResult) {
                 Logger::Log("Failed to download file(s).", Logger::LogSeverity::SERROR, "UpdateArtifactVersions");
             } else {
                 Logger::Log("Downloaded everything successfuly.", Logger::LogSeverity::SSUCCESS, "UpdateArtifactVersions");
+                if (window) window->setStatus("Running post-install scripts...");
+                Logger::Log("Running post-install scripts.", Logger::LogSeverity::SINFO, "UpdateArtifactVersions");
                 RunAfterDownloadScripts(scatter, artifact);
             }
         } else {
@@ -218,6 +267,7 @@ MainBootstrapper::MainStartResult MainBootstrapper::StartStrappin(ScatterManager
         }
     }
 
+    if (window) window->setStatus("Starting Roblox...");
     // Launch roblox
     int LaunchResult = LaunchRoblox(scatter, URI);
     if (LaunchResult != 0) {

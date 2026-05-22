@@ -7,11 +7,14 @@
 #include <qdir.h>
 
 // again got this from somewhere idk
-std::string NetworkManagement::FetchURL(const std::string &url) {
+std::string NetworkManagement::FetchURL(const std::string &url,  const std::map<std::string, std::string> &headers) {
     QNetworkAccessManager manager;
     QNetworkRequest request(QUrl(QString::fromStdString(url)));
     request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0");
-
+    for (const auto &[key, val] : headers) {
+        request.setRawHeader(QByteArray::fromStdString(key), QByteArray::fromStdString(val));
+    }
+    
     QNetworkReply *reply = manager.get(request);
 
     // block until done

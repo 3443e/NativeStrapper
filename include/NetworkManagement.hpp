@@ -1,10 +1,11 @@
 #pragma once
+#include <map>
 #include <string>
 #include <functional>
 
 namespace NetworkManagement {
     // simple fetch, returns response body
-    std::string FetchURL(const std::string &url);
+    std::string FetchURL(const std::string &url, const std::map<std::string, std::string> &headers = {});
 
     // download a file to a directory, calls progressCallback(downloaded, total) as it goes
     // returns path to downloaded file, empty string on failure

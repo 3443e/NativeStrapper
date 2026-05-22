@@ -179,6 +179,17 @@ OnboardingWindow::OnboardingWindow() {
             return;
         }
 
+        if (result == ScatterManager::ScatterInstallResult::SINSTALLUNSUPPORTEDPLATFORM) {
+            QMessageBox::critical(this, "Error", "This scatter is not supported on your platform.");
+            delete scatter;
+            return;
+        }
+        if (result == ScatterManager::ScatterInstallResult::SINSTALLMISSINGREQUIRED) {
+            QMessageBox::critical(this, "Error", "This scatter requires tools that are not installed on your system.");
+            delete scatter;
+            return;
+        }
+
         if (scatter->HasBootstrap == false && scatter->BootstrapError.error != ScatterManager::BootstrapParseError::BPARSE_OK) {
             QMessageBox::warning(this, "Bootstrap Warning", QString("Scatter was installed but its BootstrapDownload section has an error:\n\n%1\n\nUpdating may not work correctly.").arg(QString::fromStdString(scatter->BootstrapError.message)));
         }

@@ -1,4 +1,5 @@
 #pragma once
+#include "UserInterface/BootstrapWindow.hpp"
 #include "ScatterManager.hpp"
 #include <map>
 #include <string>
@@ -31,5 +32,5 @@ namespace MainBootstrapper {
         TokenMap Tokens; // keep the full token map too for AfterDownload expansion
     };
     
-    MainStartResult StartStrappin(ScatterManager::Scatter*, char* URI);
+    MainStartResult StartStrappin(ScatterManager::Scatter*, char* URI, BootstrapWindow* window = nullptr);
 }

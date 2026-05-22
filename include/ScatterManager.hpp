@@ -1,9 +1,21 @@
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
 
 namespace ScatterManager {
+    struct BootstrapInitRequest {
+        std::string url;
+        std::string token;
+        std::map<std::string, std::string> headers;
+    };
+
+    struct BootstrapInitCommand {
+        std::string system;
+        std::string token;
+    };
+
     enum class BootstrapParseError {
         BPARSE_OK,
         BPARSE_VERSION_COUNT_MISMATCH,
@@ -30,6 +42,10 @@ namespace ScatterManager {
     };
 
     struct BootstrapDownload {
+        std::vector<BootstrapInitRequest> InitRequests;
+        std::vector<BootstrapInitCommand> InitCommands;
+        std::vector<BootstrapInitRequest> PreDownloadRequests;
+        std::vector<BootstrapInitCommand> PreDownloadCommands;
         std::vector<BootstrapVersionEntry> CurrentVersion;
         std::vector<BootstrapVersionEntry> LatestVersion;
         std::vector<BootstrapDownloadEntry> Download;
@@ -48,6 +64,8 @@ namespace ScatterManager {
         std::string RobloxRunCommand;
         std::string ScatterTitle;
         std::vector<AppDataDirectory> AppDataDirectories;
+        std::vector<std::string> Required; // required programs to be in path or whatever, the name sucks
+        std::vector<std::string> Platform;
         BootstrapDownload Bootstrap;
         bool HasBootstrap = false;
         BootstrapParseResult BootstrapError;
@@ -61,6 +79,8 @@ namespace ScatterManager {
     enum ScatterInstallResult {
         SINSTALLSUCCESS,
         SINSTALLUNKNOWNENVIRONMENT,
+        SINSTALLUNSUPPORTEDPLATFORM,
+        SINSTALLMISSINGREQUIRED
     };
 
     // this function installs the scatter appropriately, it takes in a scatter struct pointer.
@@ -69,7 +89,7 @@ namespace ScatterManager {
     enum ScatterUninstallResult {
         SUNINSTALLSUCCESS,
         SUNINSTALLFAILED,
-        SUNINSTALLUNKNOWNENVIRONMENT
+        SUNINSTALLUNKNOWNENVIRONMENT,
     };
 
     ScatterUninstallResult UninstallScatter(Scatter*);

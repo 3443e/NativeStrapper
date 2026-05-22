@@ -4,6 +4,7 @@
 #include <QProcess>
 #include <QDir>
 #include <QCoreApplication>
+#include <QStandardPaths>
 #include "json.hpp"
 #include "ScatterManager.hpp"
 #include "ConfigSaving.hpp"
@@ -74,22 +75,89 @@ try { /* indentation evil */
     if (j.contains("AppDataDirectories") && j["AppDataDirectories"].is_array()) {
         for (const auto &entry : j["AppDataDirectories"]) {
             ScatterManager::AppDataDirectory dir;
-            dir.path  = expandTokens(entry.value("path", ""));
-            dir.label = entry.value("label", "");
+            dir.path = expandTokens(entry.value("path", ""));
+            dir.label = expandTokens(entry.value("label", ""));
             scatter->AppDataDirectories.push_back(dir);
         }
     }
+
+    if (j.contains("Required") && j["Required"].is_array()) {
+        for (const auto &req : j["Required"]) {
+            scatter->Required.push_back(req.get<std::string>());
+        }
+    }
+
+    if (j.contains("Platform")) {
+        if (j["Platform"].is_array()) {
+            for (const auto &p : j["Platform"]) {
+                scatter->Platform.push_back(p.get<std::string>());
+            }
+        } else if (j["Platform"].is_string()) {
+            scatter->Platform.push_back(j["Platform"].get<std::string>());
+        }
+    }
+
+
     if (j.contains("BootstrapDownload")) {
         auto &b = j["BootstrapDownload"];
         scatter->HasBootstrap = true;
 
+        // parse InitRequests
+        if (b.contains("InitRequests") && b["InitRequests"].is_array()) {
+            for (const auto &entry : b["InitRequests"]) {
+                BootstrapInitRequest r;
+                r.url = entry.value("url", "");
+                r.token = entry.value("token", "");
+                if (entry.contains("headers") && entry["headers"].is_object()) {
+                    for (const auto &[key, val] : entry["headers"].items()) {
+                        r.headers[key] = val.get<std::string>();
+                    }
+                }
+                scatter->Bootstrap.InitRequests.push_back(r);
+            }
+        }
+
+        // parse InitCommands
+        if (b.contains("InitCommands") && b["InitCommands"].is_array()) {
+            for (const auto &entry : b["InitCommands"]) {
+                BootstrapInitCommand c;
+                c.system = entry.value("system", "");
+                c.token = entry.value("token", "");
+                scatter->Bootstrap.InitCommands.push_back(c);
+            }
+        }
+
+        // parse PreDownloadRequests
+        if (b.contains("PreDownloadRequests") && b["PreDownloadRequests"].is_array()) {
+            for (const auto &entry : b["PreDownloadRequests"]) {
+                BootstrapInitRequest r;
+                r.url = entry.value("url", "");
+                r.token = entry.value("token", "");
+                if (entry.contains("headers") && entry["headers"].is_object()) {
+                    for (const auto &[key, val] : entry["headers"].items()) {
+                        r.headers[key] = val.get<std::string>();
+                    }
+                }
+                scatter->Bootstrap.PreDownloadRequests.push_back(r);
+            }
+        }
+
+        // predownloadcommands
+        if (b.contains("PreDownloadCommands") && b["PreDownloadCommands"].is_array()) {
+            for (const auto &entry : b["PreDownloadCommands"]) {
+                BootstrapInitCommand c;
+                c.system = entry.value("system", "");
+                c.token = entry.value("token", "");
+                scatter->Bootstrap.PreDownloadCommands.push_back(c);
+            }
+        }
         // parse CurrentVersion
         if (b.contains("CurrentVersion") && b["CurrentVersion"].is_array()) {
             for (const auto &entry : b["CurrentVersion"]) {
                 BootstrapVersionEntry e;
-                e.system = entry.value("system", "");
+                e.system = expandTokens(entry.value("system", ""));
                 e.token = entry.value("token", "");
-                e.file = entry.value("file", "");
+                e.file = expandTokens(entry.value("file", ""));
                 scatter->Bootstrap.CurrentVersion.push_back(e);
             }
         }
@@ -98,9 +166,9 @@ try { /* indentation evil */
         if (b.contains("LatestVersion") && b["LatestVersion"].is_array()) {
             for (const auto &entry : b["LatestVersion"]) {
                 BootstrapVersionEntry e;
-                e.url = entry.value("url", "");
-                e.system = entry.value("system", "");
-                e.file = entry.value("file", "");
+                e.url = expandTokens(entry.value("url", ""));
+                e.system = expandTokens(entry.value("system", ""));
+                e.file = expandTokens(entry.value("file", ""));
                 e.token = entry.value("token", "");
                 scatter->Bootstrap.LatestVersion.push_back(e);
             }
@@ -166,7 +234,7 @@ try { /* indentation evil */
         if (b.contains("Download") && b["Download"].is_array()) {
             for (const auto &entry : b["Download"]) {
                 BootstrapDownloadEntry e;
-                e.url = entry.value("url", "");
+                e.url = expandTokens(entry.value("url", ""));
                 e.out = expandTokens(entry.value("out", ""));
                 scatter->Bootstrap.Download.push_back(e);
             }
@@ -187,6 +255,33 @@ try { /* indentation evil */
 
 ScatterManager::ScatterInstallResult ScatterManager::InstallScatter(ScatterManager::Scatter* scatter) {
     ScatterInstallResult result = ScatterInstallResult::SINSTALLUNKNOWNENVIRONMENT;
+
+    if (!scatter->Platform.empty()) {
+        std::string current;
+#ifdef __linux__
+        current = "Linux";
+#elif _WIN32
+        current = "Windows";
+#elif __ANDROID__
+        current = "Android";
+#elif __APPLE__
+        current = "macOS";
+#endif
+        bool supported = false;
+        for (const auto &p : scatter->Platform) {
+            if (p == current) {
+                supported = true;
+                break;
+            }
+        }
+        if (!supported) return ScatterInstallResult::SINSTALLUNSUPPORTEDPLATFORM;
+    }
+
+    for (const auto &cmd : scatter->Required) {
+        if (QStandardPaths::findExecutable(QString::fromStdString(cmd)).isEmpty()) {
+            return ScatterInstallResult::SINSTALLMISSINGREQUIRED;
+        }
+    }
 
 #ifdef __linux__
     QString title = QString::fromStdString(scatter->ScatterTitle);

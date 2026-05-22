@@ -7,6 +7,8 @@ class BootstrapWindow : public QMainWindow {
     Q_OBJECT
 public:
     void setLog(const QString &text);
+    void setProgress(int value);
+    void setStatus(const QString &text);
     BootstrapWindow();
 
 private:
