@@ -142,13 +142,6 @@ OnboardingWindow::OnboardingWindow() {
         );
         if (path.isEmpty()) return;
 
-        // read metadata from the lua file first
-        ScriptManager::BootstrapScript info;
-        if (!ScriptManager::ReadMetadata(path.toStdString(), info)) {
-            QMessageBox::critical(this, "Error", "Failed to read script metadata. Make sure it has a valid metadata table.");
-            return;
-        }
-
         // warn the user
         QMessageBox warn(this);
         warn.setWindowTitle("Import Bootstrap Script");
@@ -156,10 +149,17 @@ OnboardingWindow::OnboardingWindow() {
             "You are about to install \"%1\".\n\n"
             "Only import scripts from sources you trust. "
             "A bootstrap script can run arbitrary commands on your system."
-        ).arg(QString::fromStdString(info.title)));
+        ).arg(QString::fromStdString(path.toStdString())));
         warn.setIcon(QMessageBox::Warning);
         warn.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
         if (warn.exec() != QMessageBox::Ok) return;
+
+        // read metadata from the lua file first (loads the script)
+        ScriptManager::BootstrapScript info;
+        if (!ScriptManager::ReadMetadata(path.toStdString(), info)) {
+            QMessageBox::critical(this, "Error", "Failed to read script metadata. Make sure it has a valid metadata table.");
+            return;
+        }
 
         if (!ScriptManager::InstallScript(path.toStdString())) {
             QMessageBox::critical(this, "Error", "Failed to install script.");

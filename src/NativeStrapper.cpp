@@ -1,8 +1,12 @@
+#include <thread>
 #include <string.h>
 #include <QApplication>
 #include <QPalette>
 #include <QMessageBox>
+#include "UserInterface/BootstrapWindow.hpp"
 #include "UserInterface/OnboardingWindow.hpp"
+#include "BootstrapScripts/ScriptManager.hpp"
+#include "BootstrapScripts/LuaScript.hpp"
 #include "BootstrapScripts/ScriptManager.hpp"
 #include "Logger.hpp"
 
@@ -14,7 +18,7 @@ extern "C" {
 
 struct ArgConfig {
     char* URI = NULL;
-    char* ScatterTitle = NULL;
+    char* BootstrapScript = NULL;
 };
 
 int main(int argc, char *argv[]) {
@@ -60,9 +64,9 @@ int main(int argc, char *argv[]) {
     for (int argi = 1; argi < argc; argi++) {
         if (strcmp(argv[argi], "--test") == 0) {
             // placeholder
-        } else if (strcmp(argv[argi], "--scatter") == 0) {
+        } else if (strcmp(argv[argi], "--bootstrap-script") == 0) {
             if (argi + 1 < argc) {
-                argConfig.ScatterTitle = argv[++argi];
+                argConfig.BootstrapScript = argv[++argi];
             }
         } else {
             argConfig.URI = argv[argi]; /* anything else is just an URI */
@@ -71,19 +75,36 @@ int main(int argc, char *argv[]) {
     /*--------------------------------------------------------------*/
 
     
-    if (argConfig.URI && argConfig.ScatterTitle) {
-        QString safeArg = QString::fromStdString(std::string(argConfig.ScatterTitle)).toLower().replace(" ", "-");
-        /*
-        for (auto &scatter : ScatterManager::LoadedScatters) {
-            QString safeTitle = QString::fromStdString(scatter.ScatterTitle).toLower().replace(" ", "-");
-            // find which installed scatter file was summoned (ok)
+    if (argConfig.URI && argConfig.BootstrapScript) {
+        QString safeArg = QString::fromStdString(std::string(argConfig.BootstrapScript)).toLower().replace(" ", "-");
+
+        for (auto &script : ScriptManager::LoadedScripts) {
+            QString safeTitle = QString::fromStdString(script.title).toLower().replace(" ", "-");
+
             if (safeTitle == safeArg) {
-                return 0;
+                BootstrapWindow *w = new BootstrapWindow();
+                w->show();
+
+                Logger::OnLog = [w](std::string message, Logger::LogSeverity severity, std::string from) {
+                    QMetaObject::invokeMethod(w, [w, message]() {
+                        w->setLog(QString::fromStdString(message));
+                    }, Qt::QueuedConnection);
+                };
+                
+                // run the bootstrap script in a thread
+                std::thread scriptThread([&script, &argConfig, w]() {
+                    std::string scriptPath = ScriptManager::GetScriptPath(script.title);
+                    LuaScript::RunScript(scriptPath, std::string(argConfig.URI), w);
+                });
+
+                // ye
+                scriptThread.detach();
+
+                return app.exec();
             }
         }
-        */
 
-        QMessageBox::critical(nullptr, "NativeStrapper", QString("Scatter \"%1\" not found. Please open NativeStrapper and re-import it.").arg(argConfig.ScatterTitle));
+        QMessageBox::critical(nullptr, "NativeStrapper", QString("Bootstrap script \"%1\" not found. Please open NativeStrapper and re-import it.").arg(argConfig.BootstrapScript));
         return 1;
     }
     

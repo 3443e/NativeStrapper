@@ -128,7 +128,11 @@ bool ScriptManager::InstallScript(const std::string &luaFilePath) {
     QString src = QString::fromStdString(luaFilePath);
     QString dest = QString::fromStdString(GetScriptPath(info.title)); /* GetScriptPath() sanitizes the file path btw */
 
-    if (QFile::exists(dest)) QFile::remove(dest);
+    if (QFile::exists(dest)) {  /* check if it exists */
+        Logger::Log("A script with the same title is already installed.", Logger::LogSeverity::SERROR, "ScriptManager");
+        return false;
+    }
+
     if (!QFile::copy(src, dest)) {
         Logger::Log("Failed to copy script to: " + dest.toStdString(), Logger::LogSeverity::SERROR, "ScriptManager");
         return false;
@@ -136,6 +140,7 @@ bool ScriptManager::InstallScript(const std::string &luaFilePath) {
 
     // push it to loadedscripts
     LoadedScripts.push_back(info);
+
     Logger::Log("Installed script: " + info.title, Logger::LogSeverity::SSUCCESS, "ScriptManager");
     return true;
 }
