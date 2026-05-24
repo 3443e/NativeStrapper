@@ -1,5 +1,6 @@
 #include "BootstrapScripts/ScriptManager.hpp"
 #include "Logger.hpp"
+#include "URIHandler.hpp"
 #include <QDir>
 #include <QStandardPaths>
 #include <QFile>
@@ -102,6 +103,36 @@ bool ScriptManager::ReadMetadata(const std::string &luaFilePath, BootstrapScript
     }
     lua_pop(L, 1);
 
+    lua_getfield(L, metaIndex, "appdirectories");
+    if (lua_istable(L, -1)) {
+        int arrIndex = lua_gettop(L);
+        lua_pushnil(L);
+        while (lua_next(L, arrIndex) != 0) {
+            if (lua_istable(L, -1)) {
+                ScriptManager::AppDataDirectory dir;
+                int dirIndex = lua_gettop(L);
+
+                lua_getfield(L, dirIndex, "path");
+                if (lua_isstring(L, -1)) {
+                    dir.path = lua_tostring(L, -1);
+                }
+                lua_pop(L, 1);
+
+                lua_getfield(L, dirIndex, "label");
+                if (lua_isstring(L, -1)) {
+                    dir.label = lua_tostring(L, -1);
+                }
+                lua_pop(L, 1);
+
+                if (!dir.path.empty()) {
+                    out.appdirectories.push_back(dir);
+                }
+            }
+            lua_pop(L, 1);
+        }
+    }
+    lua_pop(L, 1);
+
     lua_close(L);
 
     if (out.title.empty()) {
@@ -138,6 +169,9 @@ bool ScriptManager::InstallScript(const std::string &luaFilePath) {
         return false;
     }
 
+    // yep
+    URIHandler::InstallURIs(info.title, info.uris);
+    
     // push it to loadedscripts
     LoadedScripts.push_back(info);
 
@@ -147,13 +181,25 @@ bool ScriptManager::InstallScript(const std::string &luaFilePath) {
 
 // "uninstalls an installed script" just deletes the file from installed-scripts lol, give it the title of the bootstrap script 
 bool ScriptManager::UninstallScript(const std::string &title) {
+    // find the script struct
+    auto it = std::find_if(LoadedScripts.begin(), LoadedScripts.end(), [&](const BootstrapScript &s) { return s.title == title; });
+
+    if (it == LoadedScripts.end()) {
+        Logger::Log("Script not found: " + title, Logger::LogSeverity::SERROR, "ScriptManager");
+        return false;
+    }
+
+    // uninstall URIs before erasing
+    URIHandler::UninstallURIs(title, it->uris);
+
+    // delete the lua file
     QString path = QString::fromStdString(GetScriptPath(title));
     if (QFile::exists(path)) {
         QFile::remove(path);
     }
 
-    // first match goes boom
-    LoadedScripts.erase(std::remove_if(LoadedScripts.begin(), LoadedScripts.end(),[&](const BootstrapScript &s) { return s.title == title; }), LoadedScripts.end());
+    // now erase from list
+    LoadedScripts.erase(it);
 
     Logger::Log("Uninstalled script: " + title, Logger::LogSeverity::SSUCCESS, "ScriptManager");
     return true;
@@ -164,7 +210,6 @@ void ScriptManager::LoadScripts() {
     QString scriptsDir = QString::fromStdString(GetScriptsDir());
     QDir dir(scriptsDir);
 
-    // scan for all .lua files and read their metadata
     for (const QString &filename : dir.entryList({"*.lua"}, QDir::Files)) {
         std::string fullPath = (scriptsDir + "/" + filename).toStdString();
         BootstrapScript info;
@@ -172,5 +217,10 @@ void ScriptManager::LoadScripts() {
             LoadedScripts.push_back(info);
             Logger::Log("Loaded script: " + info.title, Logger::LogSeverity::SINFO, "ScriptManager");
         }
+    }
+
+    // reinstall all URIs at launch incase roblox default bootstrapper/sober or whatever breaks them
+    for (const auto &script : ScriptManager::LoadedScripts) {
+        URIHandler::InstallURIs(script.title, script.uris);
     }
 }

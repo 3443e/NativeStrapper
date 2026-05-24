@@ -13,5 +13,7 @@ private:
     QListWidget *scriptList;
     QPushButton *viewBtn;
     QPushButton *uninstallBtn;
+    QPushButton *launchBtn;
+    QPushButton *settingsBtn;
     void refreshScriptView();
 };

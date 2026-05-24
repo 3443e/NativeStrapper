@@ -27,13 +27,22 @@ OnboardingWindow::OnboardingWindow() {
     leftWidget->setObjectName("leftWidget");
     leftWidget->setStyleSheet("QWidget#leftWidget { background-color: #1a1a1a; }");
     auto *left = new QVBoxLayout(leftWidget);
-    left->addWidget(new QPushButton("Launch Roblox"));
+    launchBtn = new QPushButton("Launch Roblox");
+    launchBtn->setEnabled(false);
+    QObject::connect(launchBtn, &QPushButton::clicked, [this]() {
+        int row = scriptList->currentRow();
+        if (row < 0 || row >= (int)ScriptManager::LoadedScripts.size()) return;
+        // TODO: launch roblox with selected script
+    });
+    left->addWidget(launchBtn);
 
-    QPushButton *settingsBtn = new QPushButton("Settings", leftWidget);
-    QObject::connect(settingsBtn, &QPushButton::clicked, [&]() {
-        SettingsWindow *window = new SettingsWindow();
+    settingsBtn = new QPushButton("Settings", leftWidget);
+    settingsBtn->setEnabled(false);
+    QObject::connect(settingsBtn, &QPushButton::clicked, [this]() {
+        int row = scriptList->currentRow();
+        if (row < 0 || row >= (int)ScriptManager::LoadedScripts.size()) return;
+        SettingsWindow *window = new SettingsWindow(ScriptManager::LoadedScripts[row]);
         window->show();
-        this->hide();
     });
     left->addWidget(settingsBtn);
 
@@ -200,6 +209,8 @@ OnboardingWindow::OnboardingWindow() {
         bool selected = scriptList->currentRow() >= 0;
         viewBtn->setEnabled(selected);
         uninstallBtn->setEnabled(selected);
+        launchBtn->setEnabled(selected);
+        settingsBtn->setEnabled(selected);
     });
 
     btnLayout->addWidget(importBtn);

@@ -3,12 +3,18 @@
 #include <vector>
 
 namespace ScriptManager {
+    struct AppDataDirectory {
+        std::string path;
+        std::string label;
+    };
+
     struct BootstrapScript {
         std::string title;
         std::vector<std::string> uris;
         std::vector<std::string> platform;
         std::vector<std::string> required;
         std::string run;
+        std::vector<AppDataDirectory> appdirectories;
     };
 
     extern std::vector<BootstrapScript> LoadedScripts;

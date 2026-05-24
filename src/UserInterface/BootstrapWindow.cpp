@@ -7,6 +7,7 @@
 #include <QCoreApplication>
 #include <QPushButton>
 #include <QCloseEvent>
+#include <QTimer>
 
 BootstrapWindow::BootstrapWindow() {
     setWindowTitle("NativeStrapper");
@@ -35,11 +36,11 @@ BootstrapWindow::BootstrapWindow() {
     layout->addSpacing(4);
 
     progressBar = new QProgressBar();
-    progressBar->setRange(0, 100);
+    progressBar->setRange(0, 0);
     progressBar->setValue(0);
     progressBar->setTextVisible(false);
     progressBar->setFixedWidth(360);
-    progressBar->setFixedHeight(3);
+    progressBar->setFixedHeight(4);
     progressBar->setStyleSheet(
         "QProgressBar {"
         "  background-color: #333333;"
@@ -89,5 +90,17 @@ void BootstrapWindow::setStatus(const QString &text) {
 }
 
 void BootstrapWindow::setProgress(int value) {
+    setIndeterminate(false);
     progressBar->setValue(value);
+}
+
+void BootstrapWindow::setIndeterminate(bool indeterminate) {
+    isIndeterminate = indeterminate;
+    if (indeterminate) {
+        indeterminateTimer->stop();
+        progressBar->setRange(0, 0);
+    } else {
+        progressBar->setRange(0, 100);
+        progressBar->setValue(0);
+    }
 }
