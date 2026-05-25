@@ -17,27 +17,31 @@ Join the Discord server to stay up to date:
   <img src="assets/discord1.svg" alt="Join our Discord server">
 </a>
 
----
+#
 
 **What is this?**
 
-<span style="color:#3F996C;">*NativeStrapper*</span>
+**NativeStrapper**</span>
 is a Roblox bootstrapper designed to run on any system capable of executing Roblox.
 
 Unlike traditional bootstrappers like bloxstrap, appleblox, chevstrap and others, NativeStrapper gives you full control over the entire bootstrapping process by letting you write custom lua scripts (bootstrap scripts) that can completely manage Roblox updates and versioning, allowed settings and modifications, Roblox URIs and launch arguments, custom AppData paths (you can use multiple if you want), how Roblox is launched and configured, and so much more
 
-This means you can use NativeStrapper with Roblox revivals, sober, android, a freaking 2007 roblox studio build, Minecraft (theoretically), ANYTHING.
+This means you can use NativeStrapper with Roblox revivals, sober, android, a freaking 2007 roblox studio build idfk, Minecraft (theoretically), ANYTHING.
 
+**API Documentation:**
 
-**API Documentation:** soon!
+soon! (when this releases)
 
-## Contributing (PLEASE ARHGH):
+#
+
+**Contributing (PLEASE ARHGH):**
 
 Contributions are welcome.
 
 Pull requests for fixes, improvements, and new features are accepted.
+#
 
-## Credits:
+**Credits:**
 
 This project is built with inspiration and components from:
 
