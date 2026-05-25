@@ -42,9 +42,9 @@ SettingsWindow::SettingsWindow(const ScriptManager::BootstrapScript &script) {
         "  color: #cccccc;"
         "  border: 1px solid #555555;"
         "  border-radius: 3px;"
-        "  padding: 2px 300px;"
         "  font-size: 10px;"
         "  text-align: left;"
+        "  padding-left: 10px;"
         "}"
         "QPushButton:hover { background-color: #3a3a3a; }"
         "QPushButton::menu-indicator {"
@@ -71,10 +71,12 @@ SettingsWindow::SettingsWindow(const ScriptManager::BootstrapScript &script) {
 
     auto updateBtnText = [=]() {
         QStringList selected;
-        for (auto *action : appdirMenu->actions())
-            if (action->isChecked())
+        for (auto *action : appdirMenu->actions()) {
+            if (action->isChecked()) {
                 selected << action->text();
-        appdirBtn->setText(selected.isEmpty() ? "none" : selected.join(", "));
+            }
+        }
+        appdirBtn->setText("  " + (selected.isEmpty() ? "none" : selected.join(", ")));
     };
 
     if (script.appdirectories.empty()) {
