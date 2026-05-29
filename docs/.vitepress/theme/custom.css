@@ -1,0 +1,10 @@
+:root {
+    --vp-c-brand-1: #888888;
+    --vp-c-brand-2: #666666;
+    --vp-c-brand-3: #444444;
+}
+
+.VPNavBarTitle .logo {
+    height: 28px !important;
+    width: auto !important;
+}
