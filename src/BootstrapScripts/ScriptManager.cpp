@@ -133,6 +133,13 @@ bool ScriptManager::ReadMetadata(const std::string &luaFilePath, BootstrapScript
     }
     lua_pop(L, 1);
 
+
+    lua_getfield(L, metaIndex, "capabilities");
+    if (lua_istable(L, -1)) {
+        out.capabilities = ReadStringArray(L, lua_gettop(L));
+    }
+    lua_pop(L, 1);
+
     lua_close(L);
 
     if (out.title.empty()) {

@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,7 @@ namespace ScriptManager {
         std::vector<std::string> required;
         std::string run;
         std::vector<AppDataDirectory> appdirectories;
+        std::vector<std::string> capabilities;
     };
 
     extern std::vector<BootstrapScript> LoadedScripts;
@@ -30,4 +32,8 @@ namespace ScriptManager {
 
      // just scans the scripts dir and reads metadata from each bootstrap script
     void LoadScripts();
+
+    inline bool HasCapability(const BootstrapScript &script, const std::string &cap) {
+        return std::find(script.capabilities.begin(), script.capabilities.end(), cap) != script.capabilities.end();
+    }
 }

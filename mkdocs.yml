@@ -1,0 +1,20 @@
+site_name: NativeStrapper
+site_description: A cross-platform Roblox bootstrapper
+site_url: https://3443e.gitlab.io/nativestrapper-docs
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: black
+    accent: indigo
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Writing Scripts:
+    - Getting Started: scripts.md
+    - API Reference: api.md
