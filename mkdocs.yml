@@ -1,6 +1,6 @@
 site_name: NativeStrapper
 site_description: A cross-platform Roblox bootstrapper
-site_url: https://3443e.gitlab.io/nativestrapper-docs
+site_url: https://nativestrapper.gitlab.io/
 
 theme:
   name: material
