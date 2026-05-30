@@ -62,7 +62,7 @@ bool ScriptManager::ReadMetadata(const std::string &luaFilePath, BootstrapScript
         return false;
     }
 
-    // get the metadata global table /* this should still work even after registering the nativestrapper api */
+    // get the metadata global table /* this should still work even after registering the nativestrapper api (yeah it does) */
     lua_getglobal(L, "metadata");
     if (!lua_istable(L, -1)) {
         Logger::Log("No metadata table found in: " + luaFilePath, Logger::LogSeverity::SERROR, "ScriptManager");
@@ -97,13 +97,6 @@ bool ScriptManager::ReadMetadata(const std::string &luaFilePath, BootstrapScript
     lua_getfield(L, metaIndex, "platform");
     if (lua_istable(L, -1)) {
         out.platform = ReadStringArray(L, lua_gettop(L));
-    }
-    lua_pop(L, 1);
-
-    // read required array, required programs and env variables or whatever
-    lua_getfield(L, metaIndex, "required");
-    if (lua_istable(L, -1)) {
-        out.required = ReadStringArray(L, lua_gettop(L));
     }
     lua_pop(L, 1);
 

@@ -13,7 +13,6 @@ namespace ScriptManager {
         std::string title;
         std::vector<std::string> uris;
         std::vector<std::string> platform;
-        std::vector<std::string> required;
         std::string run;
         std::vector<AppDataDirectory> appdirectories;
         std::vector<std::string> capabilities;
