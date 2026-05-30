@@ -4,6 +4,7 @@
 #include <QApplication>
 
 extern "C" {
+    #include <lfs.h>
     #include <lua.h>
     #include <lualib.h>
     #include <lauxlib.h>
@@ -15,6 +16,17 @@ bool LuaScript::RunScript(const std::string &scriptPath, const std::string &uri,
 
     /* registers all Nativestrapper. functions */
     NativeStrapperApi::NativeStrapperRegisterLuaState(L, window);
+
+    // register lfs : https://github.com/lunarmodules/luafilesystem
+    // (note: if you have a better way to do this please tell me :sob:)
+    luaopen_lfs(L);
+    lua_setglobal(L, "_lfs_internal6767");     // store it temporarily
+    lua_getglobal(L, "NativeStrapper"); /* get NativeStrapper global table/dict thing and add FS to it */
+    lua_getglobal(L, "_lfs_internal6767");
+    lua_setfield(L, -2, "FS"); // NativeStrapper.FS = _lfs_internal6767
+    lua_pop(L, 1);
+    lua_pushnil(L);
+    lua_setglobal(L, "_lfs_internal6767");
 
     // https://github.com/rxi/json.lua/blob/master/json.lua
     std::string jsonPath = QCoreApplication::applicationDirPath().toStdString() + "/assets/NativeStrapperAPI/json.lua";

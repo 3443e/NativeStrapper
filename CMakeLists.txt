@@ -19,8 +19,8 @@ list(REMOVE_ITEM LUA_SOURCES
     "${CMAKE_SOURCE_DIR}/external/lua/src/luac.c"
 )
 
-add_executable(nativestrapper ${SOURCES} ${HEADERS} ${LUA_SOURCES})
+add_executable(nativestrapper ${SOURCES} ${HEADERS} ${LUA_SOURCES} external/lfs/lfs.c external/miniz/miniz.c)
 
-target_include_directories(nativestrapper PRIVATE include external external/lua/src)
+target_include_directories(nativestrapper PRIVATE include external external/lua/src external/lua/src external/lfs external/miniz)
 
 target_link_libraries(nativestrapper PRIVATE Qt5::Widgets Qt5::Network)

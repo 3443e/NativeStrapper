@@ -7,8 +7,10 @@
 #include <QApplication>
 #include <QStandardPaths>
 #include <QDir>
+#include <QCryptographicHash>
 
 extern "C" {
+    #include "miniz.h"
     #include <lua.h>
     #include <lualib.h>
     #include <lauxlib.h>
@@ -59,6 +61,61 @@ namespace NativeStrapperApi {
         lua_pushstring(L, result.c_str());
         return 1;
     }
+
+    // Retunrs md5 hash of a file, first arg is file dir
+    static int NativeStrapperMD5File(lua_State *L) {
+        const char *path = luaL_checkstring(L, 1);
+        QFile file(QString::fromUtf8(path));
+        if (!file.open(QIODevice::ReadOnly)) {
+            lua_pushnil(L);
+            lua_pushstring(L, "could not open file");
+            return 2;
+        }
+        QCryptographicHash hash(QCryptographicHash::Md5);
+        hash.addData(&file);
+        lua_pushstring(L, hash.result().toHex().toStdString().c_str());
+        return 1;
+    }
+
+    // NativeStrapper.unzip(zippath, destdir) returns true/false
+    static int NativeStrapperUnzip(lua_State *L) {
+        const char *zipPath = luaL_checkstring(L, 1);
+        const char *destPath = luaL_checkstring(L, 2);
+
+        mz_zip_archive zip;
+        memset(&zip, 0, sizeof(zip));
+
+        if (!mz_zip_reader_init_file(&zip, zipPath, 0)) {
+            lua_pushboolean(L, false);
+            lua_pushstring(L, "failed to open zip");
+            return 2;
+        }
+
+        QDir().mkpath(QString::fromUtf8(destPath));
+
+        int numFiles = (int)mz_zip_reader_get_num_files(&zip);
+        for (int i = 0; i < numFiles; i++) {
+            mz_zip_archive_file_stat stat;
+            if (!mz_zip_reader_file_stat(&zip, i, &stat)) continue;
+
+            QString outPath = QString::fromUtf8(destPath) + "/" + QString::fromUtf8(stat.m_filename);
+
+            if (mz_zip_reader_is_file_a_directory(&zip, i)) {
+                QDir().mkpath(outPath);
+                continue;
+            }
+
+            // make sure parent dir exists
+            QDir().mkpath(QFileInfo(outPath).absolutePath());
+
+            mz_zip_reader_extract_to_file(&zip, i, outPath.toStdString().c_str(), 0);
+        }
+
+        mz_zip_reader_end(&zip);
+        lua_pushboolean(L, true);
+        return 1;
+    }
+
 
     // NativeStrapper.request({url = "...", headers = {["key"] = "val"}})
     // returns {body = "...", status = 200}
@@ -148,8 +205,14 @@ namespace NativeStrapperApi {
         lua_pushcfunction(L, NativeStrapperDownload);
         lua_setfield(L, -2, "download");
 
+        lua_pushcfunction(L, NativeStrapperMD5File);
+        lua_setfield(L, -2, "md5");
+
+        lua_pushcfunction(L, NativeStrapperUnzip);
+        lua_setfield(L, -2, "unzip");
+
         // NativeStrapperAPI Constants (if anyone is reading this, i couldn't figure 
-        // out how to ACTUALLY make them constant, so please if you know, tell me)
+        // out how to ACTUALLY make them constant (you cna just modify them rn), so please if you know, tell me)
         /*----------------------------------------------------------------*/
 
         lua_newtable(L);
@@ -176,7 +239,7 @@ namespace NativeStrapperApi {
 #elif __APPLE__
         lua_pushstring(L, "macOS");
 #else
-        lua_pushstring(L, "Unknown");
+        lua_pushstring(L, "Unknown/Other");
 #endif
         lua_setfield(L, -2, "PLATFORM");
 

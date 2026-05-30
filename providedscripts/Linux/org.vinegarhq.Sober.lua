@@ -9,6 +9,19 @@ metadata = {
 }
 
 function bootstrap(uri)
+    print("using nativestrapper fs")
+    for file in NativeStrapper.FS.dir("/") do
+        if file ~= "." and file ~= ".." then
+            print(file)
+        end
+    end
+
+    local attr = NativeStrapper.FS.attributes("/usr")
+    print(attr.mode)
+
+    print(NativeStrapper.md5("/home/a/Downloads/miniz-3.1.1.zip"))
+    print(NativeStrapper.unzip("/home/a/Downloads/miniz-3.1.1.zip", "/home/a/miniz67"))
+
     NativeStrapper.log("Called bootstrap with URI: " .. uri)
     NativeStrapper.setStatus("Checking for updates")
 
