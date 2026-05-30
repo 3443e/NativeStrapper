@@ -1,4 +1,5 @@
 #include "BootstrapScripts/ScriptManager.hpp"
+#include "BootstrapScripts/NativeStrapperApi.hpp"
 #include "Logger.hpp"
 #include "URIHandler.hpp"
 #include <QDir>
@@ -49,7 +50,10 @@ static std::vector<std::string> ReadStringArray(lua_State *L, int tableIndex) {
 // LOADS and gets metadata global fields, give it a bootstrapscript struct pointer returns false if something went wrong
 bool ScriptManager::ReadMetadata(const std::string &luaFilePath, BootstrapScript &out) {
     lua_State *L = luaL_newstate();
-    luaL_openlibs(L);
+    luaL_openlibs(L); // for standard lua libraries
+
+    // scary idk
+    NativeStrapperApi::NativeStrapperRegisterLuaState(L, nullptr); /* no window */
 
     // load and run the file so metadata table gets defined for the thing
     if (luaL_dofile(L, luaFilePath.c_str()) != LUA_OK) {
@@ -58,7 +62,7 @@ bool ScriptManager::ReadMetadata(const std::string &luaFilePath, BootstrapScript
         return false;
     }
 
-    // get the metadata global table
+    // get the metadata global table /* this should still work even after registering the nativestrapper api */
     lua_getglobal(L, "metadata");
     if (!lua_istable(L, -1)) {
         Logger::Log("No metadata table found in: " + luaFilePath, Logger::LogSeverity::SERROR, "ScriptManager");

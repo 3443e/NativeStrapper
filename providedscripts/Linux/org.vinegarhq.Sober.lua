@@ -1,3 +1,5 @@
+local home = NativeStrapper.Constants.HOME
+
 metadata = {
     title = "Sober - A roblox runtime for linux",
     uris = {"roblox", "roblox-player"},
