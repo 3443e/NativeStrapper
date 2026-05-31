@@ -3,40 +3,58 @@ name: Build
 on:
   push:
     branches: [ main ]
-  release:
-    types: [ created ]
+  workflow_dispatch:
 
 jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y qtbase5-dev qtbase5-dev-tools cmake build-essential libqt5network5
+          sudo apt-get install -y qtbase5-dev qtbase5-dev-tools cmake build-essential libqt5network5 libqt5widgets5
+
       - name: Build
         run: |
-          cmake -B build
-          cmake --build build
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nativestrapper-linux
+          path: build/nativestrapper
 
   build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
           version: '5.15.2'
           arch: 'win64_mingw81'
+          modules: 'qtnetwork'
+
       - name: Install MinGW
         run: choco install mingw
+
       - name: Build
+        shell: cmd
         run: |
-          cmake -B build -G "MinGW Makefiles"
-          cmake --build build
+          cmake -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++"
+          cmake --build build --config Release
+
+      - name: Deploy Qt DLLs
+        shell: cmd
+        run: |
+          windeployqt --release --no-translations --no-system-d3d-compiler --no-opengl-sw build\nativestrapper.exe
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: nativestrapper-windows
-          path: build/nativestrapper.exe
+          path: build/
