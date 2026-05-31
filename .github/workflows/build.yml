@@ -14,7 +14,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt5-default qtbase5-dev cmake build-essential
+          sudo apt-get install -y qtbase5-dev qtbase5-dev-tools cmake build-essential libqt5network5
       - name: Build
         run: |
           cmake -B build

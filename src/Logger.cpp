@@ -8,7 +8,11 @@ std::string Logger::GetTime() {
     std::time_t t = std::chrono::system_clock::to_time_t(now);
 
     std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &t);
+#else
     localtime_r(&t, &tm);
+#endif
 
     std::ostringstream oss;
     oss << std::put_time(&tm, "%H:%M:%S");
