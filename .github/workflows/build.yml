@@ -50,6 +50,12 @@ jobs:
       - name: Deploy
         shell: pwsh
         run: |
+          echo "Qt5_Dir=$env:Qt5_Dir"
+          echo "QT_PLUGIN_PATH=$env:QT_PLUGIN_PATH"
+
+          Get-ChildItem "$env:Qt5_Dir\plugins\platforms"
+          Get-ChildItem "$env:Qt5_Dir\bin\windeployqt.exe"
+          
           Get-ChildItem "$env:Qt5_DIR" -Recurse -Filter windeployqt.exe
 
           New-Item -ItemType Directory -Path release
