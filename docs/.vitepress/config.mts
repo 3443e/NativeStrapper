@@ -19,8 +19,7 @@ export default defineConfig({
 
         nav: [
             { text: 'Home', link: '/' },
-            { text: 'Get Started', link: '/installation/' },
-            { text: 'Building', link: '/building/' },
+            { text: 'Installation', link: '/installation/' },
             { text: 'Writing Scripts', link: '/scripts/' },
             {
                 text: 'Community',
@@ -42,7 +41,7 @@ export default defineConfig({
             },
 
             {
-                text: 'Scripts',
+                text: 'Bootstrap Scripts',
                 collapsed: false,
                 items: [
                     { text: 'Overview', link: '/scripts/' },
