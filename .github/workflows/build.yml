@@ -38,6 +38,10 @@ jobs:
           version: '5.15.2'
           arch: 'win64_mingw81'
 
+      - name: Install MinGW
+        run: |
+          choco install mingw --version=8.1.0 --allow-downgrade
+      
       - name: Build
         shell: cmd
         run: |
@@ -58,9 +62,9 @@ jobs:
           Copy-Item "$env:Qt5_Dir\bin\Qt5Widgets.dll" release\
           Copy-Item "$env:Qt5_Dir\bin\Qt5Network.dll" release\
 
-          Copy-Item "$env:Qt5_Dir\bin\libgcc_s_seh-1.dll" release\
-          Copy-Item "$env:Qt5_Dir\bin\libstdc++-6.dll" release\
-          Copy-Item "$env:Qt5_Dir\bin\libwinpthread-1.dll" release\
+          Copy-Item "C:\mingw64\bin\libgcc_s_seh-1.dll" release\
+          Copy-Item "C:\mingw64\bin\libstdc++-6.dll" release\
+          Copy-Item "C:\mingw64\bin\libwinpthread-1.dll" release\
 
           Copy-Item "$env:Qt5_Dir\plugins\platforms\qwindows.dll" release\platforms\
           Copy-Item "$env:Qt5_Dir\plugins\styles\qwindowsvistastyle.dll" release\styles\
