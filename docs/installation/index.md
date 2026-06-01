@@ -2,7 +2,7 @@
 
 Prebuilt binaries are available for all supported platforms and are recommended for most users.
 
-If you want to build from source instead, see the [Building Guide](../building).
+If you want to build from source instead, see the [Building](/building/)
 
 ::: warning
 (For portable versions) NativeStrapper depends on its internal folder structure, Moving or deleting files may cause it to stop working correctly.
