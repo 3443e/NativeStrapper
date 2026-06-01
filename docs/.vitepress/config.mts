@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
     outDir: '.vitepress/dist',
     title: "NativeStrapper",
-    description: "A cross-platform Roblox bootstrapper",
+    description: "A cross-platform and very modular ROBLOX bootstrapper.",
     head: [
         ['link', { rel: 'icon', type: 'image/png', href: '/icon.png' }]
     ],

@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: "NativeStrapper"
-  tagline: A cross-platform and very modular ROBLOX bootstrapper
+  tagline: A cross-platform and very modular ROBLOX bootstrapper.
   image:
     light: /logo-light.png
     dark: /logo-dark.png
