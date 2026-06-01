@@ -8,22 +8,35 @@
 #include "DiscordRPC/DiscordRPC.hpp"
 #include "Logger.hpp"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 // You can probably get away with including this thing directly but i'm a morron
 extern "C" {
 #include "RoLogParser.h"
 }
 
-static const std::string LOG_DIR = "%LOCALAPPDATA%\Roblox\logs";
+static std::string GetLogDir() {
+#ifdef _WIN32
+    char path[MAX_PATH];
+    GetEnvironmentVariableA("LOCALAPPDATA", path, MAX_PATH);
+    return std::string(path) + "\\Roblox\\logs";
+#else
+    const char* home = getenv("HOME");
+    return std::string(home) + "/.var/app/org.vinegarhq.Sober/data/sober/appData/logs";
+#endif
+}
 
 void MainActivityWatcher() {
-    auto* watcher = TailFileWatcher::InitTailFileWatcher(LOG_DIR);
+    auto* watcher = TailFileWatcher::InitTailFileWatcher(GetLogDir());
     RoLogObject* currentlogobj = nullptr;
     bool wasingame = false;
 
     DiscordRPC::InitDiscordRPC();
     while (true) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
-        TailFileWatcher::TailFileWatcherDealWith(watcher, LOG_DIR);
+        TailFileWatcher::TailFileWatcherDealWith(watcher, GetLogDir());
 
         std::stringstream ss(watcher->undealt_with);
         std::string line;
