@@ -81,8 +81,19 @@ jobs:
           choco install nsis --no-progress -y
           "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
 
+      - name: Build portable zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path release\* -DestinationPath NativeStrapper-portable.zip
+
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
           name: nativestrapper-windows-setup
           path: NativeStrapper-Setup.exe
+
+      - name: Upload portable
+        uses: actions/upload-artifact@v4
+        with:
+          name: nativestrapper-windows-portable
+          path: NativeStrapper-portable.zip
