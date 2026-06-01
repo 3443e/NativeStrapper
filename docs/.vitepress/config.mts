@@ -31,39 +31,33 @@ export default defineConfig({
             }
         ],
 
-        sidebar: {
-            '/installation/': [
-                {
-                    text: 'Installation',
-                    items: [
-                        { text: 'Overview', link: '/installation/' }
-                    ]
-                }
-            ],
+        sidebar: [
+            {
+                text: 'Getting Started',
+                items: [
+                { text: 'Installation', link: '/installation/' },
+                { text: 'Building', link: '/building/' },
+                ]
+            },
 
-            '/building/': [
-                {
-                    text: 'Building',
-                    items: [
-                        { text: 'Overview', link: '/building/' },
-                        { text: 'Linux', link: '/building/linux' },
-                        { text: 'Windows', link: '/building/windows' }
-                    ]
-                }
-            ],
+            {
+                text: 'Scripts',
+                items: [
+                { text: 'Overview', link: '/scripts/' },
+                { text: 'Metadata', link: '/scripts/metadata' },
+                { text: 'API Reference', link: '/scripts/api' },
+                { text: 'Examples', link: '/scripts/examples' }
+                ]
+            },
 
-            '/scripts/': [
-                {
-                    text: 'Writing Scripts',
-                    items: [
-                        { text: 'Overview', link: '/scripts/' },
-                        { text: 'Metadata', link: '/scripts/metadata' },
-                        { text: 'API Reference', link: '/scripts/api' },
-                        { text: 'Examples', link: '/scripts/examples' }
-                    ]
-                }
-            ]
-        },
+            {
+                text: 'Community',
+                items: [
+                { text: 'GitHub', link: 'https://github.com/3443e/NativeStrapper' },
+                { text: 'Discord', link: 'https://discord.gg/eUSGaxZSBX' }
+                ]
+            }
+        ],
 
         socialLinks: [
             { icon: 'github', link: 'https://github.com/3443e/NativeStrapper' },
