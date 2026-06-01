@@ -34,27 +34,40 @@ export default defineConfig({
         sidebar: [
             {
                 text: 'Getting Started',
+                collapsed: false,
                 items: [
-                { text: 'Installation', link: '/installation/' },
-                { text: 'Building', link: '/building/' },
+                    { text: 'Installation', link: '/installation/' },
+                    { text: 'Building from Source', link: '/building/' }
                 ]
             },
 
             {
                 text: 'Scripts',
+                collapsed: false,
                 items: [
-                { text: 'Overview', link: '/scripts/' },
-                { text: 'Metadata', link: '/scripts/metadata' },
-                { text: 'API Reference', link: '/scripts/api' },
-                { text: 'Examples', link: '/scripts/examples' }
+                    { text: 'Overview', link: '/scripts/' },
+                    { text: 'Metadata Table', link: '/scripts/metadata' },
+                    { text: 'API Reference', link: '/scripts/api' },
+                    { text: 'Examples', link: '/scripts/examples' }
+                ]
+            },
+
+            {
+                text: 'Building',
+                collapsed: false,
+                items: [
+                    { text: 'Index', link: '/building/' },
+                    { text: 'Linux (x86_64)', link: '/building/linux' },
+                    { text: 'Windows (x64)', link: '/building/windows' }
                 ]
             },
 
             {
                 text: 'Community',
+                collapsed: true,
                 items: [
-                { text: 'GitHub', link: 'https://github.com/3443e/NativeStrapper' },
-                { text: 'Discord', link: 'https://discord.gg/eUSGaxZSBX' }
+                    { text: 'GitHub Repository', link: 'https://github.com/3443e/NativeStrapper' },
+                    { text: 'Discord Server', link: 'https://discord.gg/eUSGaxZSBX' }
                 ]
             }
         ],

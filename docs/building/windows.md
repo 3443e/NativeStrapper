@@ -1,4 +1,4 @@
-## Building for windows (x64)
+# Building for windows (x64)
 
 ### Requirements
 

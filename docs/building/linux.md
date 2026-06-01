@@ -1,4 +1,4 @@
-## Building for linux (x86_64)
+# Building for linux (x86_64)
 
 ### Dependencies
 
