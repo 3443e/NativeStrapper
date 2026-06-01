@@ -6,11 +6,8 @@
 std::string Logger::GetTime() {
     std::time_t t = std::time(nullptr);
 
-    std::tm tm{};
-    localtime_r(&t, &tm);
-
     std::ostringstream oss;
-    oss << std::put_time(&tm, "%H:%M:%S");
+    oss << std::put_time(std::localtime(&t), "%H:%M:%S");
     return oss.str();
 }
 
