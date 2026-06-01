@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: "NativeStrapper"
-  tagline: A cross-platform Roblox bootstrapper
+  tagline: A cross-platform and very modular ROBLOX bootstrapper
   image:
     light: /logo-light.png
     dark: /logo-dark.png
@@ -11,7 +11,7 @@ hero:
   actions:
     - theme: brand
       text: Get Started
-      link: /scripts/
+      link: /installation/
     - theme: alt
       text: View on GitHub
       link: https://github.com/3443e/NativeStrapper

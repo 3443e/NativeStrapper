@@ -19,6 +19,8 @@ export default defineConfig({
 
         nav: [
             { text: 'Home', link: '/' },
+            { text: 'Get Started', link: '/installation/' },
+            { text: 'Building', link: '/building/' },
             { text: 'Writing Scripts', link: '/scripts/' },
             {
                 text: 'Community',
@@ -30,12 +32,32 @@ export default defineConfig({
         ],
 
         sidebar: {
+            '/installation/': [
+                {
+                    text: 'Installation',
+                    items: [
+                        { text: 'Overview', link: '/installation/' }
+                    ]
+                }
+            ],
+
+            '/building/': [
+                {
+                    text: 'Building',
+                    items: [
+                        { text: 'Overview', link: '/building/' },
+                        { text: 'Linux', link: '/building/linux' },
+                        { text: 'Windows', link: '/building/windows' }
+                    ]
+                }
+            ],
+
             '/scripts/': [
                 {
                     text: 'Writing Scripts',
                     items: [
                         { text: 'Overview', link: '/scripts/' },
-                        { text: 'metadata table', link: '/scripts/metadata' },
+                        { text: 'Metadata', link: '/scripts/metadata' },
                         { text: 'API Reference', link: '/scripts/api' },
                         { text: 'Examples', link: '/scripts/examples' }
                     ]
