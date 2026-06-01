@@ -19,12 +19,11 @@ list(REMOVE_ITEM LUA_SOURCES
     "${CMAKE_SOURCE_DIR}/external/lua/src/luac.c"
 )
 
-if(WIN32)
-    set(APP_ICON_RESOURCE "${CMAKE_SOURCE_DIR}/assets/NativeStrapper.rc")
-    target_sources(nativestrapper PRIVATE ${APP_ICON_RESOURCE})
-endif()
-
 add_executable(nativestrapper ${SOURCES} ${HEADERS} ${LUA_SOURCES} external/lfs/lfs.c external/miniz/miniz.c)
+
+if(WIN32)
+    target_sources(nativestrapper PRIVATE "${CMAKE_SOURCE_DIR}/assets/NativeStrapper.rc")
+endif()
 
 target_include_directories(nativestrapper PRIVATE include external external/lua/src external/lua/src external/lfs external/miniz)
 
