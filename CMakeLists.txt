@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(nativestrapper CXX C)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -9,6 +9,12 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets Network)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
+
+set(CLANGFORMAT_EXECUTABLE "" CACHE STRING "" FORCE)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+set(DISCORD_RPC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/discord-presence)
+target_compile_options(discord-rpc PRIVATE -Wno-error=template-body -w)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE HEADERS "include/*.hpp")
@@ -25,6 +31,9 @@ if(WIN32)
     target_sources(nativestrapper PRIVATE "${CMAKE_SOURCE_DIR}/assets/NativeStrapper.rc")
 endif()
 
-target_include_directories(nativestrapper PRIVATE include external external/lua/src external/lua/src external/lfs external/miniz)
+target_include_directories(nativestrapper PRIVATE 
+    include external external/lua/src external/lfs external/miniz
+    external/discord-presence/include
+)
 
-target_link_libraries(nativestrapper PRIVATE Qt5::Widgets Qt5::Network)
+target_link_libraries(nativestrapper PRIVATE Qt5::Widgets Qt5::Network discord-rpc)
