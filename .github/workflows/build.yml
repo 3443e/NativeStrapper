@@ -87,8 +87,8 @@ jobs:
           name: nativestrapper-windows-setup
           path: NativeStrapper-Setup.exe
 
-     - name: Upload portable
-        uses: actions/upload-artifact@v4
-        with:
-          name: nativestrapper-windows-portable
-          path: release
+      - name: Upload portable
+          uses: actions/upload-artifact@v4
+          with:
+            name: nativestrapper-windows-portable
+            path: release
