@@ -51,6 +51,11 @@ jobs:
       - name: Deploy
         shell: pwsh
         run: |
+          ls "$env:Qt5_Dir\bin\libwinpthread*"
+          ls "C:\mingw64\bin\libwinpthread*"
+          
+          (Get-Item "$env:Qt5_Dir\bin\libwinpthread-1.dll").VersionInfo
+          (Get-Item "C:\mingw64\bin\libwinpthread-1.dll").VersionInfo
           New-Item -ItemType Directory -Path release
           New-Item -ItemType Directory -Path release\platforms
           New-Item -ItemType Directory -Path release\styles
