@@ -47,9 +47,9 @@ jobs:
       - name: Deploy
         shell: pwsh
         run: |
+          $env:PATH = "$env:Qt5_Dir\bin;$env:PATH"
           New-Item -ItemType Directory -Path release
           Copy-Item build/nativestrapper.exe release/
-
           & "$env:Qt5_Dir\bin\windeployqt.exe" `
             --release `
             --no-translations `
