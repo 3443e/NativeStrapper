@@ -1,0 +1,11 @@
+{
+    "public": {
+        "Linux": {
+            "Sober": {
+                "script": "Linux/org.vinegarhq.Sober.lua",
+                "Name": "Sober - A roblox runtime for linux",
+                "Description": "Simple bootstrap script for sober, the roblox runtime for linux"
+            }
+        }
+    }
+}

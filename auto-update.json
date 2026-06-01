@@ -1,0 +1,8 @@
+{
+    "latest": "0.10",
+    "0.10": {
+        "windows-portable-x64": ["github link or somebs", "idk"],
+        "windows-installer-x64": ["github link or somebs", "idk"],
+        "linux-portable-x86_64": ["github link or somebs", "idk"]
+    }
+}
