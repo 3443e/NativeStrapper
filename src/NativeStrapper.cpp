@@ -5,8 +5,6 @@
 #include <QPalette>
 #include <QMessageBox>
 #include "ConfigSaving.hpp"
-#include "NativeStrapper/Installer.hpp"
-#include "UserInterface/InstallerWindow.hpp"
 #include "UserInterface/BootstrapWindow.hpp"
 #include "UserInterface/OnboardingWindow.hpp"
 #include "BootstrapScripts/ScriptManager.hpp"
@@ -87,6 +85,7 @@ int main(int argc, char *argv[]) {
     // loads config json
     ConfigSaving::Load();
 
+    /*
     if (!Installer::IsInstalled() && !Installer::IsRunningFromInstallLocation()) {
         Logger::Log("NativeStrapper not installed, launching starting setup", Logger::LogSeverity::SINFO, "NativeStrapperMain");
         InstallerWindow w;
@@ -94,7 +93,6 @@ int main(int argc, char *argv[]) {
         return app.exec();
     }
     
-    /*
     if (!Installer::IsRunningFromInstallLocation()) {
         Logger::Log("NativeStrapper is already installed. Please launch it from where you've installed it.", Logger::LogSeverity::SFATAL, "NativeStrapperMain");
         QMessageBox::critical(nullptr, "Error", "NativeStrapper is already installed. Please launch it from where you've installed it.");

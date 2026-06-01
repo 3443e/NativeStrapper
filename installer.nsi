@@ -5,6 +5,9 @@ OutFile "NativeStrapper-Setup.exe"
 InstallDir "$LOCALAPPDATA\NativeStrapper"
 RequestExecutionLevel user
 
+!define MUI_ICON "assets\NativeStrapper.ico"
+!define MUI_UNICON "assets\NativeStrapper.ico"
+
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
