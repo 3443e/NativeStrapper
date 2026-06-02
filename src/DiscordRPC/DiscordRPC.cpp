@@ -20,7 +20,9 @@ static std::string FetchGameInfo(uint64_t universeId, const std::string& field) 
             return j["data"][0]["creator"]["name"].get<std::string>();
         }
         return j["data"][0][field].get<std::string>();
-    } catch (...) { return ""; }
+    } catch (...) {
+        return "";
+    }
 }
 
 static std::string FetchThumbnailUrl(uint64_t universeId) {
@@ -30,7 +32,9 @@ static std::string FetchThumbnailUrl(uint64_t universeId) {
     try {
         auto j = json::parse(body);
         return j["data"][0]["imageUrl"].get<std::string>();
-    } catch (...) { return ""; }
+    } catch (...) {
+        return "";
+    }
 }
 
 void DiscordRPC::InitDiscordRPC() {
@@ -51,16 +55,18 @@ void DiscordRPC::InitDiscordRPC() {
 }
 
 void DiscordRPC::SetDiscordPresence(uint64_t placeId, uint64_t universeId) {
-    Logger::Log("Fetching game info for universeId: " + std::to_string(universeId), Logger::SLOG, "DiscordRPC");
+    Logger::Log("Fetching game info for universeId: " + std::to_string(universeId), Logger::SLOG, "SetDiscordPresence");
 
     std::string gameName = FetchGameInfo(universeId, "name");
     std::string creatorName = FetchGameInfo(universeId, "creator");
     std::string thumbnail = FetchThumbnailUrl(universeId);
     std::string gamePageUrl = "https://www.roblox.com/games/" + std::to_string(placeId);
     std::string stateStr = "by " + (creatorName.empty() ? "Unknown" : creatorName);
-    if (gameName.empty()) gameName = "Roblox";
+    if (gameName.empty()) {
+        gameName = "Roblox";
+    }
 
-    Logger::Log("Setting presence: " + gameName + " / " + stateStr, Logger::SLOG, "DiscordRPC");
+    Logger::Log("Setting presence: " + gameName + " / " + stateStr, Logger::SLOG, "SetDiscordPresence");
 
     auto& rpc = discord::RPCManager::get();
     rpc.getPresence()
@@ -76,12 +82,12 @@ void DiscordRPC::SetDiscordPresence(uint64_t placeId, uint64_t universeId) {
 
 void DiscordRPC::ClearDiscordPresence() {
     discord::RPCManager::get().clearPresence();
-    Logger::Log("Cleared Discord presence", Logger::SLOG, "DiscordRPC");
+    Logger::Log("Cleared Discord presence", Logger::SLOG, "ClearDiscordPresence");
 }
 
 void DiscordRPC::ShutdownDiscordRPC() {
     discord::RPCManager::get().shutdown();
-    Logger::Log("Discord RPC shut down", Logger::SLOG, "DiscordRPC");
+    Logger::Log("Discord RPC shut down", Logger::SLOG, "ShutdownDiscordRPC");
 }
 
 void DiscordRPC::RunCallbacks() {

@@ -1,75 +1,77 @@
 #include "NetworkManagement.hpp"
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QEventLoop>
-#include <QUrl>
-#include <qdir.h>
+#include <curl/curl.h>
+#include <QDir>
+#include <QFileInfo>
+#include <fstream>
 
-// again got this from somewhere idk
-std::string NetworkManagement::FetchURL(const std::string &url,  const std::map<std::string, std::string> &headers) {
-    QNetworkAccessManager manager;
-    QNetworkRequest request(QUrl(QString::fromStdString(url)));
-    request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0");
-    for (const auto &[key, val] : headers) {
-        request.setRawHeader(QByteArray::fromStdString(key), QByteArray::fromStdString(val));
-    }
-    
-    QNetworkReply *reply = manager.get(request);
-
-    // block until done
-    QEventLoop loop;
-    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-
-    if (reply->error() != QNetworkReply::NoError) {
-        reply->deleteLater();
-        return "";
-    }
-
-    std::string result = reply->readAll().toStdString();
-    reply->deleteLater();
-    return result;
+// help
+static size_t WriteStringCallback(void* ptr, size_t size, size_t nmemb, std::string* data) {
+    data->append((char*)ptr, size * nmemb);
+    return size * nmemb;
 }
 
-std::string NetworkManagement::DownloadFile(const std::string &url, const std::string &out, std::function<void(long long, long long)> progressCallback) {
-    QNetworkAccessManager manager;
-    QNetworkRequest request(QUrl(QString::fromStdString(url)));
-    request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0");
-    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+static size_t WriteFileCallback(void* ptr, size_t size, size_t nmemb, std::ofstream* file) {
+    file->write((char*)ptr, size * nmemb);
+    return size * nmemb;
+}
 
-    QNetworkReply *reply = manager.get(request);
-
-    QString filePath = QString::fromStdString(out);
-    QDir().mkpath(QFileInfo(filePath).absolutePath());
-
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly)) {
-        reply->deleteLater();
+std::string NetworkManagement::FetchURL(const std::string& url, const std::map<std::string, std::string>& headers) {
+    CURL* curl = curl_easy_init();
+    if (!curl) {
         return "";
     }
 
-    QEventLoop loop;
+    std::string response;
+    struct curl_slist* headerList = nullptr;
 
-    QObject::connect(reply, &QNetworkReply::downloadProgress, [&](long long received, long long total) {
-        file.write(reply->readAll());
-        if (progressCallback) progressCallback(received, total);
-    });
+    for (const auto& [key, val] : headers) {
+        headerList = curl_slist_append(headerList, (key + ": " + val).c_str());
+    }
 
-    QObject::connect(reply, &QNetworkReply::finished, [&]() {
-        file.write(reply->readAll());
-        file.close();
-        loop.quit();
-    });
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteStringCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerList);
 
-    loop.exec();
+    CURLcode res = curl_easy_perform(curl);
 
-    if (reply->error() != QNetworkReply::NoError) {
-        reply->deleteLater();
-        QFile::remove(filePath);
+    curl_slist_free_all(headerList);
+    curl_easy_cleanup(curl);
+
+    if (res != CURLE_OK) {
+        return "";
+    }
+    return response;
+}
+
+std::string NetworkManagement::DownloadFile(const std::string& url, const std::string& out, std::function<void(long long, long long)> progressCallback) {
+    CURL* curl = curl_easy_init();
+    if (!curl) {
         return "";
     }
 
-    reply->deleteLater();
-    return filePath.toStdString();
+    QDir().mkpath(QFileInfo(QString::fromStdString(out)).absolutePath());
+    std::ofstream file(out, std::ios::binary);
+    if (!file.is_open()) {
+        curl_easy_cleanup(curl);
+        return "";
+    }
+
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteFileCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &file);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+    CURLcode res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+    file.close();
+
+    if (res != CURLE_OK) {
+        std::remove(out.c_str());
+        return "";
+    }
+    return out;
 }

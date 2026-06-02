@@ -50,19 +50,19 @@ jobs:
           version: '5.15.2'
           arch: 'win64_mingw81'
 
+      - name: Install curl
+        run: choco install curl --no-progress -y
+
       - name: Build
         shell: cmd
         run: |
-          cmake -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++"
-          cmake --build build
+          cmake -B build -G "MinGW Makefiles" ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" ^
+            -DCURL_INCLUDE_DIR="C:\ProgramData\chocolatey\lib\curl\tools\curl\include" ^
+            -DCURL_LIBRARY="C:\ProgramData\chocolatey\lib\curl\tools\curl\lib\libcurl.dll.a"
 
-      - name: Install OpenSSL
-        shell: pwsh
-        run: |
-          choco install openssl --no-progress -y
-          $opensslPath = Get-ChildItem "C:\Program Files\OpenSSL*" -Directory | Select-Object -First 1
-          Write-Host "OpenSSL path: $($opensslPath.FullName)"
-          Get-ChildItem "$($opensslPath.FullName)\bin\" -Filter "*.dll" | Select-Object Name
+          cmake --build build
 
       - name: Deploy
         shell: pwsh
