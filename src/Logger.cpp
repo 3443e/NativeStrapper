@@ -1,6 +1,7 @@
 //#include <chrono>
 #include <iomanip> // for std::put_time()
 #include <iostream>
+#include <sstream>
 #include "Logger.hpp"
 
 std::string Logger::GetTime() {

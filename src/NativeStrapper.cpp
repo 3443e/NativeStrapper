@@ -13,6 +13,8 @@
 #include "Logger.hpp"
 #include "NativeStrapper.hpp"
 
+#include "platform_default_handler.h"
+
 extern "C" {
     #include <lua.h>
     #include <lualib.h>
@@ -25,6 +27,9 @@ struct ArgConfig {
 };
 
 int main(int argc, char *argv[]) {
+#ifdef __APPLE__
+    platform::setAsDefaultHandler("roblox-player");
+#endif
     std::cout << "\033[36mNativeStrapper\033[0m v" + std::string(NativeStrapper::NativeStrapperVersion) << std::endl;
     std::cout << "Repo: " + std::string(NativeStrapper::NativeStrapperRepo) << std::endl;
     std::cout << "-------------------------------------------" << std::endl;

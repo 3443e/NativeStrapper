@@ -1,4 +1,5 @@
 #include "URIHandler.hpp"
+#include "URIHandlers/platform_default_handler.h"
 #include "Logger.hpp"
 #include "ConfigSaving.hpp"
 #include <QDir>
@@ -9,6 +10,7 @@
 #include <QSettings>
 #include <QCoreApplication>
 #include <QString>
+
 
 static QString getSafeTitle(const std::string &title) {
     return QString::fromStdString(title).toLower().replace(" ", "-");
@@ -77,6 +79,8 @@ bool URIHandler::InstallURIs(const std::string &title, const std::vector<std::st
     Logger::Log("Installed URI handlers for: " + title, Logger::LogSeverity::SSUCCESS, "URIHandler");
     return true;
 #endif
+
+
     return false;
 }
 
