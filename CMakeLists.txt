@@ -10,7 +10,15 @@ if(APPLE)
 endif()
 
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
-find_package(CURL REQUIRED)
+
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(CURL_USE_OPENSSL OFF CACHE BOOL "" FORCE)
+set(CURL_USE_SCHANNEL ON CACHE BOOL "" FORCE)  # use Windows native TLS on Windows
+set(CURL_USE_SECTRANSP OFF CACHE BOOL "" FORCE)
+set(HTTP_ONLY ON CACHE BOOL "" FORCE)
+set(CURL_DISABLE_TESTS ON CACHE BOOL "" FORCE)
+add_subdirectory(external/curl)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -85,11 +93,12 @@ target_include_directories(nativestrapper PRIVATE
     external/lfs
     external/miniz
     external/discord-presence/include
+    external/curl/include
     src/URIHandlers
 )
 
 target_link_libraries(nativestrapper PRIVATE
     Qt5::Widgets
     discord-rpc
-    CURL::libcurl
+    CURL::libcurl_static
 )
