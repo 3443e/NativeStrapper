@@ -60,12 +60,6 @@ jobs:
           version: '5.15.2'
           arch: 'win64_mingw81'
 
-      - name: Locate curl dll
-        shell: msys2 {0}
-        run: |
-          echo $MSYSTEM_PREFIX
-          ls $MSYSTEM_PREFIX/bin | grep curl
-
       - name: Configure
         shell: msys2 {0}
         run: |
@@ -79,6 +73,11 @@ jobs:
         shell: msys2 {0}
         run: |
           cmake --build build --parallel
+
+      - name: Copy MSYS2 curl
+        shell: msys2 {0}
+        run: |
+          cp /mingw64/bin/libcurl-4.dll "$GITHUB_WORKSPACE/release/"
 
       - name: Deploy
         shell: pwsh
@@ -96,7 +95,6 @@ jobs:
           Copy-Item "$env:Qt5_Dir\bin\Qt5Widgets.dll" release\
 
           $MsysBin = "C:\msys64\mingw64\bin"
-          Copy-Item "$MsysBin\libcurl-4.dll" release\
           Copy-Item "$MsysBin\libwinpthread-1.dll" release\
 
           Copy-Item "$env:Qt5_Dir\plugins\platforms\qwindows.dll" release\platforms\
