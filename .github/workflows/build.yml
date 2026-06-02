@@ -56,10 +56,13 @@ jobs:
           cmake -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++"
           cmake --build build
 
-      - name: Find OpenSSL DLLs or something
+      - name: Install OpenSSL
         shell: pwsh
         run: |
-          Get-ChildItem "$env:Qt5_Dir\bin\" -Filter "*.dll" | Select-Object Name
+          choco install openssl --no-progress -y
+          $opensslPath = Get-ChildItem "C:\Program Files\OpenSSL*" -Directory | Select-Object -First 1
+          Write-Host "OpenSSL path: $($opensslPath.FullName)"
+          Get-ChildItem "$($opensslPath.FullName)\bin\" -Filter "*.dll" | Select-Object Name
 
       - name: Deploy
         shell: pwsh
@@ -84,8 +87,9 @@ jobs:
           Copy-Item "$env:Qt5_Dir\plugins\platforms\qwindows.dll" release\platforms\
           Copy-Item "$env:Qt5_Dir\plugins\styles\qwindowsvistastyle.dll" release\styles\
 
-          Get-ChildItem "$env:Qt5_Dir\bin\" -Filter "libssl*.dll" | ForEach-Object { Copy-Item $_.FullName release\ }
-          Get-ChildItem "$env:Qt5_Dir\bin\" -Filter "libcrypto*.dll" | ForEach-Object { Copy-Item $_.FullName release\ }
+          $opensslPath = (Get-ChildItem "C:\Program Files\OpenSSL*" -Directory | Select-Object -First 1).FullName
+          Get-ChildItem "$opensslPath\bin\" -Filter "libssl*.dll" | ForEach-Object { Copy-Item $_.FullName release\ }
+          Get-ChildItem "$opensslPath\bin\" -Filter "libcrypto*.dll" | ForEach-Object { Copy-Item $_.FullName release\ }
 
       - name: Build installer
         shell: cmd
