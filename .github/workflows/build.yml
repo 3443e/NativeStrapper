@@ -43,18 +43,36 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-  
+
+      - name: Install MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-curl
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
           version: '5.15.2'
           arch: 'win64_mingw81'
 
-      - name: Build
-        shell: cmd
+      - name: Configure
+        shell: msys2 {0}
         run: |
-          cmake -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++"
-          cmake --build build
+          cmake -S . -B build \
+            -G "MinGW Makefiles" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="/mingw64;$Qt5_Dir" \
+            -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++"
+
+      - name: Build
+        shell: msys2 {0}
+        run: |
+          cmake --build build --parallel
 
       - name: Deploy
         shell: pwsh
