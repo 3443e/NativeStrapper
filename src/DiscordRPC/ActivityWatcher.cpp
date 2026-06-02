@@ -57,7 +57,7 @@ void MainActivityWatcher() {
 
         DiscordRPC::RunCallbacks();
         if (currentlogobj->current_state == ROLOG_IN_GAME || currentlogobj->current_state == ROLOG_IN_LUA_APP) {
-            if (!wasingame) {
+            if (!wasingame && currentlogobj->placeId != 0) { /* prevents racing conditions */
                 Logger::Log("Player joined game!! placeId: " + std::to_string(currentlogobj->placeId) + " / userId: " + std::to_string(currentlogobj->userId) + " / universeId: " + std::to_string(currentlogobj->universeId), Logger::SLOG, "MainActivityWatcher");
                 wasingame = true;
                 DiscordRPC::SetDiscordPresence(currentlogobj->placeId, currentlogobj->universeId);
