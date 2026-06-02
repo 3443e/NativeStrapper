@@ -89,6 +89,11 @@ jobs:
           Copy-Item "$env:Qt5_Dir\bin\Qt5Gui.dll" release\
           Copy-Item "$env:Qt5_Dir\bin\Qt5Widgets.dll" release\
 
+          Copy-Item "C:\msys64\mingw64\bin\libgcc_s_seh-1.dll" release\
+          Copy-Item "C:\msys64\mingw64\bin\libstdc++-6.dll" release\
+          Copy-Item "C:\msys64\mingw64\bin\libcurl-4.dll" release\
+          Copy-Item "C:\msys64\mingw64\bin\libwinpthread-1.dll" release\
+
           Copy-Item "$env:Qt5_Dir\plugins\platforms\qwindows.dll" release\platforms\
           Copy-Item "$env:Qt5_Dir\plugins\styles\qwindowsvistastyle.dll" release\styles\
 
@@ -96,12 +101,6 @@ jobs:
           Get-ChildItem "$opensslPath\bin\" -Filter "libssl*.dll" | ForEach-Object { Copy-Item $_.FullName release\ }
           Get-ChildItem "$opensslPath\bin\" -Filter "libcrypto*.dll" | ForEach-Object { Copy-Item $_.FullName release\ }
 
-      - name: Deploy but cooler (MSYS2)
-        shell: msys2 {0}
-        run: |
-          mkdir -p "$GITHUB_WORKSPACE/release"
-          cp /mingw64/bin/libcurl-4.dll "$GITHUB_WORKSPACE/release/"
-          cp /mingw64/bin/libwinpthread-1.dll "$GITHUB_WORKSPACE/release/" || true
 
       - name: Build installer
         shell: cmd
