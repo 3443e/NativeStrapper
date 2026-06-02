@@ -1,3 +1,4 @@
+#include <cstring>
 #include "windows.hpp"
 #include <array>
 #include <memory>
@@ -352,7 +353,7 @@ namespace discord::platform {
                 };
 
                 UnixAddr addr{AF_UNIX};
-                std::memcpy(addr.sun_path, socketPath.c_str(), std::min(socketPath.size(), sizeof(addr.sun_path) - 1));
+                memcpy(addr.sun_path, socketPath.c_str(), std::min(socketPath.size(), sizeof(addr.sun_path) - 1));
 
                 if (::connect(socket, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == 0) {
                     m_pipe = reinterpret_cast<HANDLE>(socket);

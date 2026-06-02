@@ -14,7 +14,6 @@ set(CLANGFORMAT_EXECUTABLE "" CACHE STRING "" FORCE)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 set(DISCORD_RPC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 add_subdirectory(external/discord-presence)
-target_compile_options(discord-rpc PRIVATE -Wno-error=template-body -w)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE HEADERS "include/*.hpp")
