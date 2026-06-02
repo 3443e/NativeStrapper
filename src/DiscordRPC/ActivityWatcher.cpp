@@ -34,6 +34,8 @@ void MainActivityWatcher() {
     bool wasingame = false;
 
     DiscordRPC::InitDiscordRPC();
+    DiscordRPC::RunCallbacks();
+    DiscordRPC::SetDiscordPresence(476005980, 182548142);
     while (true) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         TailFileWatcher::TailFileWatcherDealWith(watcher, GetLogDir());
