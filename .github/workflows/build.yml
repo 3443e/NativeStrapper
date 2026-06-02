@@ -16,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y qtbase5-dev qtbase5-dev-tools cmake build-essential libqt5network5 libqt5widgets5
+          sudo apt-get install -y qtbase5-dev qtbase5-dev-tools cmake build-essential libqt5network5 libqt5widgets5 libcurl4-openssl-dev
 
       - name: Build
         run: |
