@@ -60,6 +60,12 @@ jobs:
           version: '5.15.2'
           arch: 'win64_mingw81'
 
+      - name: Locate curl dll
+        shell: msys2 {0}
+        run: |
+          echo $MSYSTEM_PREFIX
+          ls $MSYSTEM_PREFIX/bin | grep curl
+
       - name: Configure
         shell: msys2 {0}
         run: |
