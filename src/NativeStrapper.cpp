@@ -10,6 +10,8 @@
 #include "BootstrapScripts/ScriptManager.hpp"
 #include "BootstrapScripts/LuaScript.hpp"
 #include "BootstrapScripts/ScriptManager.hpp"
+#include "DiscordRPC/ActivityWatcher.hpp"
+
 #include "Logger.hpp"
 #include "NativeStrapper.hpp"
 
@@ -104,6 +106,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     */
+    ActivityWatcher::StartWatcherThread();
     
     // moooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
     Logger::Log("Loading installed bootstrap scripts", Logger::LogSeverity::SLOG, "NativeStrapperMain");
@@ -123,8 +126,8 @@ int main(int argc, char *argv[]) {
 
     // parse args
     for (int argi = 1; argi < argc; argi++) {
-        if (strcmp(argv[argi], "--test") == 0) {
-            // placeholder
+        if (strcmp(argv[argi], "--silent") == 0) {
+            
         } else if (strcmp(argv[argi], "--bootstrap-script") == 0) {
             if (argi + 1 < argc) {
                 argConfig.BootstrapScript = argv[++argi];

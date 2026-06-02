@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(nativestrapper CXX C)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -19,6 +17,8 @@ set(CMAKE_AUTORCC ON)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "include/*.hpp")
 file(GLOB_RECURSE LUA_SOURCES "external/lua/src/*.c")
+set(DISCORD_RPC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/discord-presence)
 
 list(REMOVE_ITEM LUA_SOURCES
         "${CMAKE_SOURCE_DIR}/external/lua/src/lua.c"
@@ -61,7 +61,7 @@ if(APPLE)
 endif()
 
 target_include_directories(nativestrapper PRIVATE
-        include external external/lua/src external/lfs external/miniz
+        include external external/lua/src external/lfs external/miniz external/discord-presence/include
         src/URIHandlers)
 
-target_link_libraries(nativestrapper PRIVATE Qt5::Widgets Qt5::Network)
+target_link_libraries(nativestrapper PRIVATE Qt5::Widgets Qt5::Network discord-rpc)
