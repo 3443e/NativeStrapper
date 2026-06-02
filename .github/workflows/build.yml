@@ -74,11 +74,6 @@ jobs:
         run: |
           cmake --build build --parallel
 
-      - name: Copy MSYS2 curl
-        shell: msys2 {0}
-        run: |
-          cp /mingw64/bin/libcurl-4.dll "$GITHUB_WORKSPACE/release/"
-
       - name: Deploy
         shell: pwsh
         run: |
@@ -103,6 +98,11 @@ jobs:
           $opensslPath = (Get-ChildItem "C:\Program Files\OpenSSL*" -Directory | Select-Object -First 1).FullName
           Get-ChildItem "$opensslPath\bin\" -Filter "libssl*.dll" | ForEach-Object { Copy-Item $_.FullName release\ }
           Get-ChildItem "$opensslPath\bin\" -Filter "libcrypto*.dll" | ForEach-Object { Copy-Item $_.FullName release\ }
+
+      - name: Deploy but cooler (MSYS2)
+        shell: msys2 {0}
+        run: |
+          cp /mingw64/bin/libcurl-4.dll "$GITHUB_WORKSPACE/release/"
 
       - name: Build installer
         shell: cmd
