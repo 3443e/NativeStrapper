@@ -89,20 +89,9 @@ jobs:
           Copy-Item "$env:Qt5_Dir\bin\Qt5Gui.dll" release\
           Copy-Item "$env:Qt5_Dir\bin\Qt5Widgets.dll" release\
 
-          Get-ChildItem -Path C:\ -Recurse -Filter "libcurl*.dll" -ErrorAction SilentlyContinue
-
-          $curlDll = Get-ChildItem -Path C:\ -Recurse -Filter "libcurl*.dll" -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($curlDll) {
-              Copy-Item $curlDll.FullName release\
-              Write-Host "Copied $($curlDll.FullName)"
-          } else {
-              Write-Error "Could not find libcurl DLL"
-          }
-
-          Get-ChildItem "C:\msys64\mingw64\bin\libcurl*.dll" | Copy-Item -Destination release\
-          Copy-Item "C:\mingw64\bin\libgcc_s_seh-1.dll" release\
-          Copy-Item "C:\mingw64\bin\libstdc++-6.dll" release\
-          Copy-Item "C:\mingw64\bin\libwinpthread-1.dll" release\
+          $MsysBin = "C:\msys64\mingw64\bin"
+          Copy-Item "$MsysBin\libcurl-4.dll" release\
+          Copy-Item "$MsysBin\libwinpthread-1.dll" release\
 
           Copy-Item "$env:Qt5_Dir\plugins\platforms\qwindows.dll" release\platforms\
           Copy-Item "$env:Qt5_Dir\plugins\styles\qwindowsvistastyle.dll" release\styles\
