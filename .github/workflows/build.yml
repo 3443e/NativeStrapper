@@ -50,8 +50,10 @@ jobs:
           version: '5.15.2'
           arch: 'win64_mingw81'
 
-      - name: Install curl
-        run: choco install curl --no-progress -y
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          install: mingw-w64-x86_64-curl
 
       - name: Build
         shell: cmd
@@ -59,8 +61,6 @@ jobs:
           cmake -B build -G "MinGW Makefiles" ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" ^
-            -DCURL_INCLUDE_DIR="C:\ProgramData\chocolatey\lib\curl\tools\curl\include" ^
-            -DCURL_LIBRARY="C:\ProgramData\chocolatey\lib\curl\tools\curl\lib\libcurl.dll.a"
 
           cmake --build build
 
