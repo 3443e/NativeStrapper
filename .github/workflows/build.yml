@@ -88,7 +88,8 @@ jobs:
           Copy-Item "$env:Qt5_Dir\bin\Qt5Core.dll" release\
           Copy-Item "$env:Qt5_Dir\bin\Qt5Gui.dll" release\
           Copy-Item "$env:Qt5_Dir\bin\Qt5Widgets.dll" release\
-          Copy-Item "$env:Qt5_Dir\bin\Qt5Network.dll" release\
+
+          Copy-Item "C:\mingw64\bin\libcurl-4.dll" release\
 
           Copy-Item "C:\mingw64\bin\libgcc_s_seh-1.dll" release\
           Copy-Item "C:\mingw64\bin\libstdc++-6.dll" release\
