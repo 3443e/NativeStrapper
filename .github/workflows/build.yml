@@ -109,9 +109,20 @@ jobs:
           Copy-Item "C:\mingw64\bin\libwinpthread-1.dll" release\
           Copy-Item "C:\mingw64\bin\libstdc++-6.dll" release\
           
-          Copy-Item "D:\a\_temp\msys64\mingw64\bin\libcurl-4.dll" release\
-          Copy-Item "D:\a\_temp\msys64\mingw64\bin\libssl-3-x64.dll" release\
-          Copy-Item "D:\a\_temp\msys64\mingw64\bin\libcrypto-3-x64.dll" release\
+          $msys = "D:\a\_temp\msys64\mingw64\bin"
+          Copy-Item "$msys\libcurl-4.dll" release\
+          Copy-Item "$msys\libssl-3-x64.dll" release\
+          Copy-Item "$msys\libcrypto-3-x64.dll" release\
+          Copy-Item "$msys\libbrotlidec.dll" release\
+          Copy-Item "$msys\libbrotlicommon.dll" release\
+          Copy-Item "$msys\libidn2-0.dll" release\
+          Copy-Item "$msys\libpsl-5.dll" release\
+          Copy-Item "$msys\libssh2-1.dll" release\
+          Copy-Item "$msys\libiconv-2.dll" release\
+          Copy-Item "$msys\libintl-8.dll" release\
+          Copy-Item "$msys\libunistring-5.dll" release\
+          Copy-Item "$msys\libzstd.dll" release\
+          Copy-Item "$msys\zlib1.dll" release\
 
           Copy-Item "$env:Qt5_Dir\plugins\platforms\qwindows.dll" release\platforms\
           Copy-Item "$env:Qt5_Dir\plugins\styles\qwindowsvistastyle.dll" release\styles\
