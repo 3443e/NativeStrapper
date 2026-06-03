@@ -52,7 +52,7 @@ jobs:
           install: >-
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-curl
+            mingw-w64-x86_64-curl-winssl
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
@@ -75,10 +75,9 @@ jobs:
           cmake --build build --parallel
 
       - name: Find curl
-        shell: pwsh
+        shell: msys2 {0}
         run: |
-          Get-ChildItem "C:\msys64\mingw64\bin" -Filter "*curl*" | Select-Object Name
-          Get-ChildItem "C:\msys64\mingw64\bin" -Filter "*ssl*" | Select-Object Name
+          find /mingw64/bin -name "*curl*"
 
       - name: Deploy
         shell: pwsh
