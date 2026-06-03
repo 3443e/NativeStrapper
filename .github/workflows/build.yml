@@ -74,6 +74,11 @@ jobs:
         run: |
           cmake --build build --parallel
 
+      - name: Find MSYS2 curl
+        shell: pwsh
+        run: |
+          Get-ChildItem "D:\msys64" -Recurse -Filter "libcurl*.dll" 2>$null | Select-Object FullName
+
       - name: Deploy
         shell: pwsh
         run: |
