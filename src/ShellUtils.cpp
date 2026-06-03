@@ -1,7 +1,7 @@
 #include <array>
 #include "ShellUtils.hpp"
 
-// somewhere from https://stackoverflow.com/ boo 
+// somewhere from https://stackoverflow.com/ boo
 std::string ShellUtils::RunCommand(std::string &cmd) {
     std::array<char, 256> buffer;
     std::string result;
@@ -15,5 +15,6 @@ std::string ShellUtils::RunCommand(std::string &cmd) {
     while (!result.empty() && (result.back() == '\n' || result.back() == '\r' || result.back() == ' ')) {
         result.pop_back();
     }
+
     return result;
 }

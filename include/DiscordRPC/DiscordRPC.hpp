@@ -4,7 +4,7 @@
 
 namespace DiscordRPC {
     void InitDiscordRPC();
-    void SetDiscordPresence(uint64_t placeId, uint64_t universeId);
+    void SetDiscordPresence(uint64_t placeId, uint64_t universeId, bool IgnoreEverythingIsLuaApp);
     void ClearDiscordPresence();
     void ShutdownDiscordRPC();
     void RunCallbacks();

@@ -2,6 +2,7 @@
 #include "BootstrapScripts/NativeStrapperApi.hpp"
 #include "Logger.hpp"
 #include <QApplication>
+#include <QProcess>
 
 extern "C" {
     #include <lfs.h>

@@ -71,7 +71,7 @@ static inline RoLogObject* RoLogCreateObject(char* file_path) {
     }
 
     obj->last_idx = 0;
-    obj->current_state = ROLOG_OFFLINE;
+    obj->current_state = ROLOG_INVALID;
 
     obj->serverObj = (RoLogServerIPs*)malloc(sizeof(RoLogServerIPs));
     if (!obj->serverObj) {

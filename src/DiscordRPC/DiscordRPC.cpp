@@ -1,3 +1,4 @@
+#include "NativeStrapper.hpp"
 #include "DiscordRPC/DiscordRPC.hpp"
 #include "NetworkManagement.hpp"
 #include "Logger.hpp"
@@ -39,22 +40,37 @@ static std::string FetchThumbnailUrl(uint64_t universeId) {
 
 void DiscordRPC::InitDiscordRPC() {
     auto& rpc = discord::RPCManager::get();
-    rpc.setClientID("1511131982355238962")
+    rpc.setClientID(NativeStrapper::DiscordRobloxAppID)
        .onReady([](discord::User const& user) {
-           Logger::Log("Discord RPC ready: " + user.username, Logger::SLOG, "DiscordRPC");
+           Logger::Log("Discord RPC ready: " + user.username, Logger::SLOG, "InitDiscordRPC");
        })
        .onDisconnected([](int code, std::string_view msg) {
-           Logger::Log("Discord RPC disconnected: " + std::string(msg), Logger::SLOG, "DiscordRPC");
+           Logger::Log("Discord RPC disconnected " + std::string(msg), Logger::SLOG, "InitDiscordRPC");
        })
        .onErrored([](int code, std::string_view msg) {
-           Logger::Log("Discord RPC error: " + std::string(msg), Logger::SLOG, "DiscordRPC");
+           Logger::Log("Discord RPC error: " + std::string(msg), Logger::SLOG, "InitDiscordRPC");
        })
        .initialize();
 
-    Logger::Log("Discord RPC initialized", Logger::SLOG, "DiscordRPC");
+    Logger::Log("Discord RPC initialized", Logger::SLOG, "InitDiscordRPC");
 }
 
-void DiscordRPC::SetDiscordPresence(uint64_t placeId, uint64_t universeId) {
+void DiscordRPC::SetDiscordPresence(uint64_t placeId, uint64_t universeId, bool IgnoreEverythingIsLuaApp) {
+    if (IgnoreEverythingIsLuaApp) {
+        Logger::Log("Settings presence to Lua App", Logger::SLOG, "SetDiscordPresence");
+
+        auto& rpc = discord::RPCManager::get();
+        rpc.getPresence()
+            .setDetails("In LuaApp")
+            .setState("")
+            .setLargeImageKey("")
+            .setLargeImageText("")
+            .setStartTimestamp((int64_t)time(nullptr))
+            .setButton1("", "");
+        
+        rpc.refresh();
+        return;
+    }
     Logger::Log("Fetching game info for universeId: " + std::to_string(universeId), Logger::SLOG, "SetDiscordPresence");
 
     std::string gameName = FetchGameInfo(universeId, "name");

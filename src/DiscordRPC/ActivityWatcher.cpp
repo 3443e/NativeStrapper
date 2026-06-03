@@ -28,14 +28,25 @@ static std::string GetLogDir() {
 #endif
 }
 
+enum RPCState {
+    RPCIN_GAME,
+    RPCIN_LUAAPP,
+    RPCNIL
+};
+
 void MainActivityWatcher() {
     auto* watcher = TailFileWatcher::InitTailFileWatcher(GetLogDir());
     RoLogObject* currentlogobj = nullptr;
     bool wasingame = false;
 
     DiscordRPC::InitDiscordRPC();
+    /*
     DiscordRPC::RunCallbacks();
     DiscordRPC::SetDiscordPresence(476005980, 182548142);
+    */
+    unsigned char currentRPCState = RPCNIL;
+    unsigned long long last_placeid = 0;
+
     while (true) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         TailFileWatcher::TailFileWatcherDealWith(watcher, GetLogDir());
@@ -58,19 +69,27 @@ void MainActivityWatcher() {
         }
 
         DiscordRPC::RunCallbacks();
-        if (currentlogobj->current_state == ROLOG_IN_GAME || currentlogobj->current_state == ROLOG_IN_LUA_APP) {
-            if (!wasingame && currentlogobj->placeId != 0) { /* prevents racing conditions */
+        if (currentlogobj->current_state == ROLOG_IN_GAME) {
+            if (currentlogobj->placeId != 0 && currentlogobj->placeId != last_placeid && currentlogobj->universeId != 0) {
+                currentRPCState = RPCIN_GAME;
                 Logger::Log("Player joined game!! placeId: " + std::to_string(currentlogobj->placeId) + " / userId: " + std::to_string(currentlogobj->userId) + " / universeId: " + std::to_string(currentlogobj->universeId), Logger::SLOG, "MainActivityWatcher");
                 wasingame = true;
-                DiscordRPC::SetDiscordPresence(currentlogobj->placeId, currentlogobj->universeId);
+                last_placeid = currentlogobj->placeId;
+                DiscordRPC::SetDiscordPresence(currentlogobj->placeId, currentlogobj->universeId, false);
             }
-        } else {
-            if (wasingame) {
-                Logger::Log("Player has left the game...", Logger::SLOG, "MainActivityWatcher");
-                DiscordRPC::ClearDiscordPresence();
-                DiscordRPC::ShutdownDiscordRPC();
-                exit(0);
+        } else if (currentlogobj->current_state == ROLOG_IN_LUA_APP) {
+            if (currentRPCState != RPCIN_LUAAPP) {
+                currentRPCState = RPCIN_LUAAPP;
+                wasingame = false;
+                /* void SetDiscordPresence(uint64_t placeId, uint64_t universeId, bool IgnoreEverythingIsLuaApp); */
+                DiscordRPC::SetDiscordPresence(0, 0, true);
             }
+        } else if (currentlogobj->current_state == ROLOG_OFFLINE) {
+            currentRPCState = RPCNIL;
+            Logger::Log("Player has left the game...", Logger::SLOG, "MainActivityWatcher");
+            DiscordRPC::ClearDiscordPresence();
+            DiscordRPC::ShutdownDiscordRPC();
+            exit(0); // boo idk
         }
     }
 }

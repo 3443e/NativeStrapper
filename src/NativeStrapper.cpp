@@ -1,9 +1,12 @@
 #include <iostream>
 #include <thread>
+#include <memory>
+#include <atomic>
 #include <string>
 #include <QApplication>
 #include <QPalette>
 #include <QMessageBox>
+#include <QProcess>
 #include "ConfigSaving.hpp"
 #include "UserInterface/BootstrapWindow.hpp"
 #include "UserInterface/OnboardingWindow.hpp"
@@ -35,28 +38,28 @@ int main(int argc, char *argv[]) {
     std::cout << "\033[36mNativeStrapper\033[0m v" + std::string(NativeStrapper::NativeStrapperVersion) << std::endl;
     std::cout << "Repo: " + std::string(NativeStrapper::NativeStrapperRepo) << std::endl;
     std::cout << "-------------------------------------------" << std::endl;
-    std::cout << "\033[36m" << R"(            
-            ;;;;                           
-           ;;;;;;;;;;;;                    
-           ;;;;;;;;;;;;;;;;  ;             
-          ;;;;;;;;;;;;;;;;  ;;;;;;;;;      
-          ;;;;;;;;;;;;;;;   ;;;;;;;;;;;;;; 
+    std::cout << "\033[36m" << R"(
+            ;;;;
+           ;;;;;;;;;;;;
+           ;;;;;;;;;;;;;;;;  ;
+          ;;;;;;;;;;;;;;;;  ;;;;;;;;;
+          ;;;;;;;;;;;;;;;   ;;;;;;;;;;;;;;
          ;;;;;;;;;;;;;;;;  ;;;;;;;;;;;;;;;;
-         ;;;;;;;;;;;;;;;   ;;;;;;;;;;;;;;; 
-        ;;;;;;;;;;;;;;;;  ;;;;;;;;;;;;;;;; 
-             ;;;;;;;       ;;;;;;;;;;;;;;  
-       ;;;;;;                ;;;;;;;;;;;;  
-       ;;;;;;;;;;;;         ;;;;;;;;;;;;   
-      ;;;;;;;;;;;;;               ;;;;;;   
-      ;;;;;;;;;;;;;;;      ;;;;;;;         
-     ;;;;;;;;;;;;;;;;  ;;;;;;;;;;;;;;;;    
-     ;;;;;;;;;;;;;;;   ;;;;;;;;;;;;;;;     
-    ;;;;;;;;;;;;;;;;  ;;;;;;;;;;;;;;;;     
-     ;;;;;;;;;;;;;;   ;;;;;;;;;;;;;;;      
-          ;;;;;;;;;  ;;;;;;;;;;;;;;;;      
-                 ;   ;;;;;;;;;;;;;;;       
-                        ;;;;;;;;;;;;       
-                               ;;;;        
+         ;;;;;;;;;;;;;;;   ;;;;;;;;;;;;;;;
+        ;;;;;;;;;;;;;;;;  ;;;;;;;;;;;;;;;;
+             ;;;;;;;       ;;;;;;;;;;;;;;
+       ;;;;;;                ;;;;;;;;;;;;
+       ;;;;;;;;;;;;         ;;;;;;;;;;;;
+      ;;;;;;;;;;;;;               ;;;;;;
+      ;;;;;;;;;;;;;;;      ;;;;;;;
+     ;;;;;;;;;;;;;;;;  ;;;;;;;;;;;;;;;;
+     ;;;;;;;;;;;;;;;   ;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;  ;;;;;;;;;;;;;;;;
+     ;;;;;;;;;;;;;;   ;;;;;;;;;;;;;;;
+          ;;;;;;;;;  ;;;;;;;;;;;;;;;;
+                 ;   ;;;;;;;;;;;;;;;
+                        ;;;;;;;;;;;;
+                               ;;;;
     )" << "\033[0m" << std::endl;
     std::cout << "-------------------------------------------" << std::endl;
     Logger::Log("Testing lualib...", Logger::LogSeverity::SLOG, "NativeStrapperMain");
@@ -99,7 +102,7 @@ int main(int argc, char *argv[]) {
         w.show();
         return app.exec();
     }
-    
+
     if (!Installer::IsRunningFromInstallLocation()) {
         Logger::Log("NativeStrapper is already installed. Please launch it from where you've installed it.", Logger::LogSeverity::SFATAL, "NativeStrapperMain");
         QMessageBox::critical(nullptr, "Error", "NativeStrapper is already installed. Please launch it from where you've installed it.");
@@ -107,7 +110,7 @@ int main(int argc, char *argv[]) {
     }
     */
     ActivityWatcher::StartWatcherThread();
-    
+
     // moooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
     Logger::Log("Loading installed bootstrap scripts", Logger::LogSeverity::SLOG, "NativeStrapperMain");
     ScriptManager::LoadScripts(); /* scans the installed-scripts folder and loads everything to ScriptManager::LoadedScripts*/
@@ -127,7 +130,7 @@ int main(int argc, char *argv[]) {
     // parse args
     for (int argi = 1; argi < argc; argi++) {
         if (strcmp(argv[argi], "--silent") == 0) {
-            
+
         } else if (strcmp(argv[argi], "--bootstrap-script") == 0) {
             if (argi + 1 < argc) {
                 argConfig.BootstrapScript = argv[++argi];
@@ -138,7 +141,7 @@ int main(int argc, char *argv[]) {
     }
     /*--------------------------------------------------------------*/
 
-    
+
     if (argConfig.URI && argConfig.BootstrapScript) {
         Logger::Log("Launched with bootstrap script and URI.", Logger::LogSeverity::SLOG, "NativeStrapperMain");
         QString safeArg = QString::fromStdString(std::string(argConfig.BootstrapScript)).toLower().replace(" ", "-");
@@ -156,14 +159,43 @@ int main(int argc, char *argv[]) {
                         w->setLog(QString::fromStdString(message));
                     }, Qt::QueuedConnection);
                 };
-                
+
                 Logger::Log("Executing bootstrap script...", Logger::LogSeverity::SINFO, "NativeStrapperMain");
                 
-                // run the bootstrap script in a thread
-                std::thread scriptThread([&script, &argConfig, w]() {
-                    std::string scriptPath = ScriptManager::GetScriptPath(script.title);
-                    LuaScript::RunScript(scriptPath, std::string(argConfig.URI), w);
+                std::string scriptPath = ScriptManager::GetScriptPath(script.title);
+                std::string uri = std::string(argConfig.URI);
+                std::string runCmd = script.run;
+
+                size_t pos = runCmd.find("%u");
+                if (pos != std::string::npos)
+                    runCmd.replace(pos, 2, uri);
+
+                auto bootstrapDone = std::make_shared<std::atomic<bool>>(false);
+
+                std::thread scriptThread([scriptPath, uri, w, bootstrapDone]() {
+                    LuaScript::RunScript(scriptPath, uri, w);
+                    bootstrapDone->store(true);
                 });
+                scriptThread.detach();
+
+                QTimer *timer = new QTimer();
+                QObject::connect(timer, &QTimer::timeout, [timer, w, runCmd, bootstrapDone]() {
+                    if (!bootstrapDone->load()) return;
+                    timer->stop();
+                    timer->deleteLater();
+
+                    w->setStatus("Starting Roblox...");
+                    w->setIndeterminate(true);
+
+                    QStringList parts = QString::fromStdString(runCmd).split(' ', Qt::SkipEmptyParts);
+                    QString program = parts.takeFirst();
+                    QProcess *process = new QProcess();
+                    QObject::connect(process, &QProcess::started, [w]() {
+                        w->close();
+                    });
+                    process->start(program, parts);
+                });
+                timer->start(100);
 
                 // ye
                 scriptThread.detach();
@@ -175,7 +207,7 @@ int main(int argc, char *argv[]) {
         QMessageBox::critical(nullptr, "NativeStrapper", QString("Bootstrap script \"%1\" not found. Please open NativeStrapper and re-import it.").arg(argConfig.BootstrapScript));
         return 1;
     }
-    
+
     // got a URI but no scatter, open GUI
     OnboardingWindow w;
     w.show();

@@ -26,7 +26,7 @@ bool URIHandler::InstallURIs(const std::string &title, const std::vector<std::st
     QString desktopPath = getDesktopPath(title);
     QString execPath = QString::fromStdString(ConfigSaving::Current.installDir);
     if (execPath.isEmpty()) { // scary and dangerous
-        execPath = QCoreApplication::applicationDirPath();
+        execPath = QCoreApplication::applicationFilePath();
     }
 
     // build MimeType string

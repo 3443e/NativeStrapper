@@ -14,7 +14,7 @@ std::string Logger::GetTime() {
 
 const char* Logger::SeverityToString(Logger::LogSeverity severity) {
     switch (severity) {
-        case Logger::LogSeverity::SLOG: 
+        case Logger::LogSeverity::SLOG:
             return "LOG";
         case Logger::LogSeverity::SINFO:
             return "INFO";
@@ -72,5 +72,5 @@ void Logger::Log(std::string message, Logger::LogSeverity severity, std::string 
         std::cerr << out.str();
     } else {
         std::cout << out.str();
-    }  
+    }
 }
