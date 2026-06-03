@@ -77,7 +77,11 @@ jobs:
       - name: Find MSYS2 curl
         shell: pwsh
         run: |
-          Get-ChildItem "D:\msys64" -Recurse -Filter "libcurl*.dll" 2>$null | Select-Object FullName
+          Get-ChildItem "D:\msys64" -Recurse -Filter "libcurl*.dll" -ErrorAction SilentlyContinue | Select-Object FullName
+          Write-Host "--- MSYS2 dirs ---"
+          Get-ChildItem "D:\msys64" -Directory | Select-Object Name
+          Write-Host "--- mingw64 bin ---"
+          Get-ChildItem "D:\msys64\mingw64\bin" -Filter "*.dll" | Select-Object Name | Where-Object {$_.Name -like "*curl*" -or $_.Name -like "*ssl*" -or $_.Name -like "*crypto*"}
 
       - name: Deploy
         shell: pwsh
