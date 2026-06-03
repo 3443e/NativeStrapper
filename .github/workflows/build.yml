@@ -74,14 +74,11 @@ jobs:
         run: |
           cmake --build build --parallel
 
-      - name: Find MSYS2 curl
+      - name: Find MSYS2
         shell: pwsh
         run: |
-          Get-ChildItem "D:\msys64" -Recurse -Filter "libcurl*.dll" -ErrorAction SilentlyContinue | Select-Object FullName
-          Write-Host "--- MSYS2 dirs ---"
-          Get-ChildItem "D:\msys64" -Directory | Select-Object Name
-          Write-Host "--- mingw64 bin ---"
-          Get-ChildItem "D:\msys64\mingw64\bin" -Filter "*.dll" | Select-Object Name | Where-Object {$_.Name -like "*curl*" -or $_.Name -like "*ssl*" -or $_.Name -like "*crypto*"}
+          Get-ChildItem "C:\" -Directory | Select-Object Name
+          Get-ChildItem "D:\" -Directory | Select-Object Name
 
       - name: Deploy
         shell: pwsh
