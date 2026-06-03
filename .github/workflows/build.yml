@@ -79,6 +79,12 @@ jobs:
         run: |
           find /mingw64/bin -name "*curl*"
 
+      - name: Find curl windows path
+        shell: msys2 {0}
+        run: |
+          cygpath -w /mingw64/bin/libcurl-4.dll
+          find /mingw64/bin -name "libssl*" -o -name "libcrypto*"
+
       - name: Deploy
         shell: pwsh
         run: |
