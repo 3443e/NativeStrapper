@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QCloseEvent>
 #include <QTimer>
+#include <QDebug>
 
 BootstrapWindow::BootstrapWindow() {
     setWindowTitle("NativeStrapper");
@@ -97,7 +98,6 @@ void BootstrapWindow::setProgress(int value) {
 void BootstrapWindow::setIndeterminate(bool indeterminate) {
     isIndeterminate = indeterminate;
     if (indeterminate) {
-        indeterminateTimer->stop();
         progressBar->setRange(0, 0);
     } else {
         progressBar->setRange(0, 100);

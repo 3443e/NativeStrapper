@@ -3,6 +3,7 @@
 #include <string>
 #include <filesystem>
 #include <unordered_map>
+#include <vector>
 
 namespace TailFileWatcher {
     struct FileInfo {
@@ -11,10 +12,10 @@ namespace TailFileWatcher {
     };
 
     struct FileWatcherObj {
-        std::unordered_map<std::string, FileInfo> files;
+        std::unordered_map<std::string, std::unordered_map<std::string, FileInfo>> filesByFolder;
         std::string undealt_with;
     };
 
-    FileWatcherObj* InitTailFileWatcher(const std::string& folder_path);
-    bool TailFileWatcherDealWith(FileWatcherObj* obj, const std::string& folder_path);
+    FileWatcherObj* InitTailFileWatcher(const std::vector<std::string>& folders);
+    bool TailFileWatcherDealWith(TailFileWatcher::FileWatcherObj* obj, const std::vector<std::string>& folders);
 }

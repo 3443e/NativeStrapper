@@ -6,7 +6,10 @@ metadata = {
     appdirectories = {
         {path = "/home/" ..NativeStrapper.Constants.USER.. "/.var/app/org.vinegarhq.Sober/data/sober/appData", label = "Main"}
     },
-    log_folders = {"/home/" ..NativeStrapper.Constants.USER.. "/.var/app/org.vinegarhq.Sober/data/sober/appData/logs"}
+    logfolders = {
+        "/home/" ..NativeStrapper.Constants.USER.. "/ov2",
+        "/home/" ..NativeStrapper.Constants.USER.. "/.var/app/org.vinegarhq.Sober/data/sober/appData/logs"
+    }
 }
 
 function bootstrap(uri)

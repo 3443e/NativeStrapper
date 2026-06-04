@@ -15,6 +15,7 @@ namespace ScriptManager {
         std::vector<std::string> platform;
         std::string run;
         std::vector<AppDataDirectory> appdirectories;
+        std::vector<std::string> logfolders;
         std::vector<std::string> capabilities;
     };
 
@@ -35,4 +36,7 @@ namespace ScriptManager {
     inline bool HasCapability(const BootstrapScript &script, const std::string &cap) {
         return std::find(script.capabilities.begin(), script.capabilities.end(), cap) != script.capabilities.end();
     }
+
+    // returns a bootstrap script struct by it's name
+    BootstrapScript* FindFirstScriptByName(std::string);
 }

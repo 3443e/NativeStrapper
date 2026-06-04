@@ -34,8 +34,8 @@ enum RPCState {
     RPCNIL
 };
 
-void MainActivityWatcher() {
-    auto* watcher = TailFileWatcher::InitTailFileWatcher(GetLogDir());
+void MainActivityWatcher(ScriptManager::BootstrapScript* bootstrapScript) {
+    auto* watcher = TailFileWatcher::InitTailFileWatcher(bootstrapScript->logfolders);
     RoLogObject* currentlogobj = nullptr;
     bool wasingame = false;
 
@@ -49,12 +49,12 @@ void MainActivityWatcher() {
 
     while (true) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
-        TailFileWatcher::TailFileWatcherDealWith(watcher, GetLogDir());
+        TailFileWatcher::TailFileWatcherDealWith(watcher, bootstrapScript->logfolders);
 
         std::stringstream ss(watcher->undealt_with);
         std::string line;
         while (std::getline(ss, line)) {
-            if (!currentlogobj && !watcher->files.empty()) {
+            if (!currentlogobj && !watcher->filesByFolder.empty()) {
                 currentlogobj = RoLogCreateObject(nullptr);
             }
             if (!currentlogobj) {
@@ -94,8 +94,8 @@ void MainActivityWatcher() {
     }
 }
 
-void ActivityWatcher::StartWatcherThread() {
-    std::thread watcherthread(MainActivityWatcher);
+void ActivityWatcher::StartWatcherThread(ScriptManager::BootstrapScript* bootstrapScript) {
+    std::thread watcherthread(MainActivityWatcher, bootstrapScript);
     
     {
         std::stringstream ss;

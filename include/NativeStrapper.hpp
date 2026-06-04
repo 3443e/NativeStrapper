@@ -1,6 +1,13 @@
 #pragma once
+#include <cstddef>
 
 namespace NativeStrapper {
+    struct ArgConfig {
+        char* URI = NULL;
+        char* BootstrapScript = NULL;
+        bool ActivityWatch = false;
+    };
+    
     inline constexpr const char* NativeStrapperVersion = "0.10";
     inline constexpr const char* NativeStrapperRepo = "https://github.com/3443e/NativeStrapper";
     inline constexpr const char* NativeStrapperDocs = "https://nativestrapper.gitlab.io/";

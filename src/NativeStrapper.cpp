@@ -1,22 +1,25 @@
+/*
+-------------------NativeStrapper--------------------
+A cross-platform and very modular roblox bootstrapper.
+
+something something
+*/
+
 #include <iostream>
 #include <thread>
-#include <memory>
-#include <atomic>
 #include <string>
 #include <QApplication>
 #include <QPalette>
 #include <QMessageBox>
 #include <QProcess>
 #include "ConfigSaving.hpp"
-#include "UserInterface/BootstrapWindow.hpp"
-#include "UserInterface/OnboardingWindow.hpp"
 #include "BootstrapScripts/ScriptManager.hpp"
-#include "BootstrapScripts/LuaScript.hpp"
 #include "BootstrapScripts/ScriptManager.hpp"
 #include "DiscordRPC/ActivityWatcher.hpp"
 
 #include "Logger.hpp"
 #include "NativeStrapper.hpp"
+#include "Bootstrapper.hpp"
 
 #include "platform_default_handler.h"
 
@@ -25,11 +28,6 @@ extern "C" {
     #include <lualib.h>
     #include <lauxlib.h>
 }
-
-struct ArgConfig {
-    char* URI = NULL;
-    char* BootstrapScript = NULL;
-};
 
 int main(int argc, char *argv[]) {
 #ifdef __APPLE__
@@ -62,16 +60,48 @@ int main(int argc, char *argv[]) {
                                ;;;;
     )" << "\033[0m" << std::endl;
     std::cout << "-------------------------------------------" << std::endl;
-    Logger::Log("Testing lualib...", Logger::LogSeverity::SLOG, "NativeStrapperMain");
 
-    lua_State *L = luaL_newstate();
-    luaL_openlibs(L);
-    luaL_dostring(L, "print('[xx:xx:xx] [LOG] [LuaNativeStrapperMain] Hello from dostring')");
-    lua_close(L);
+    NativeStrapper::ArgConfig argConfig;
 
-    Logger::Log("Creating qapplication", Logger::LogSeverity::SLOG, "NativeStrapperMain");
+    for (int argi = 1; argi < argc; argi++) {
+        if (strcmp(argv[argi], "--activity-watch") == 0) {
+            argConfig.ActivityWatch = true;
+        } else if (strcmp(argv[argi], "--bootstrap-script") == 0) {
+            if (argi + 1 < argc) {
+                argConfig.BootstrapScript = argv[++argi];
+            }
+        } else {
+            argConfig.URI = argv[argi]; /* anything else is just an URI */
+        }
+    }
+
+    // ~/.config/nativestrapper/
+    QCoreApplication::setApplicationName("nativestrapper");
+
+    if (argConfig.ActivityWatch) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        Logger::Log("Loading config", Logger::LogSeverity::SLOG, "NativeStrapperMain");
+        ConfigSaving::Load();
+        
+        Logger::Log("Loading installed bootstrap scripts", Logger::LogSeverity::SLOG, "NativeStrapperMain");
+        ScriptManager::LoadScripts();
+
+        ScriptManager::BootstrapScript* bootstrapScript = ScriptManager::FindFirstScriptByName(argConfig.BootstrapScript);
+        if (bootstrapScript == NULL) {
+            Logger::Log("Couldn't find script, activity watcher will exit.", Logger::LogSeverity::SLOG, "NativeStrapperMain");
+            return 1;
+        }
+        
+        Logger::Log("Starting watcher thread for " + std::string(argConfig.BootstrapScript), Logger::LogSeverity::SLOG, "NativeStrapperMain");
+        ActivityWatcher::StartWatcherThread(bootstrapScript);
+        
+        std::this_thread::sleep_for(std::chrono::hours(67));
+    }
+
+    Logger::Log("Creating QApplication", Logger::LogSeverity::SLOG, "NativeStrapperMain");
     QApplication app(argc, argv);
 
+    Logger::Log("Setting theme", Logger::LogSeverity::SLOG, "NativeStrapperMain");
     QPalette dark;
     dark.setColor(QPalette::Window, QColor(38, 38, 38));
     dark.setColor(QPalette::WindowText, QColor(221, 221, 221));
@@ -90,126 +120,18 @@ int main(int argc, char *argv[]) {
     app.setPalette(dark);
     app.setStyle("Fusion");
 
-    Logger::Log("Loading saved config config", Logger::LogSeverity::SLOG, "NativeStrapperMain");
-
-    // loads config json
+    Logger::Log("Loading saved config.json", Logger::LogSeverity::SLOG, "NativeStrapperMain");
     ConfigSaving::Load();
 
-    /*
-    if (!Installer::IsInstalled() && !Installer::IsRunningFromInstallLocation()) {
-        Logger::Log("NativeStrapper not installed, launching starting setup", Logger::LogSeverity::SINFO, "NativeStrapperMain");
-        InstallerWindow w;
-        w.show();
-        return app.exec();
-    }
-
-    if (!Installer::IsRunningFromInstallLocation()) {
-        Logger::Log("NativeStrapper is already installed. Please launch it from where you've installed it.", Logger::LogSeverity::SFATAL, "NativeStrapperMain");
-        QMessageBox::critical(nullptr, "Error", "NativeStrapper is already installed. Please launch it from where you've installed it.");
-        return 1;
-    }
-    */
-    ActivityWatcher::StartWatcherThread();
-
-    // moooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
     Logger::Log("Loading installed bootstrap scripts", Logger::LogSeverity::SLOG, "NativeStrapperMain");
     ScriptManager::LoadScripts(); /* scans the installed-scripts folder and loads everything to ScriptManager::LoadedScripts*/
-    /* it also reinstalls all URIs */
+    /* it also reinstalls all URIs incase something happened */
 
-    // Argument parsing section
-    /*--------------------------------------------------------------*/
-    ArgConfig argConfig;
-
-    // no args, just show the GUI
-    if (argc < 2) {
-        OnboardingWindow w;
-        w.show();
-        return app.exec();
+    Bootstrapper::BootstrapResult BResult = Bootstrapper::MainBootstrap(&argConfig); // This will create a BootstrapWindow.
+    if (BResult != Bootstrapper::BootstrapResult::BOOTSTRAP_SUCCESS) {
+        QMessageBox::critical(nullptr, "NativeStrapper", QString::fromUtf8(Bootstrapper::Exception.c_str()));
+        return BResult;
     }
 
-    // parse args
-    for (int argi = 1; argi < argc; argi++) {
-        if (strcmp(argv[argi], "--silent") == 0) {
-
-        } else if (strcmp(argv[argi], "--bootstrap-script") == 0) {
-            if (argi + 1 < argc) {
-                argConfig.BootstrapScript = argv[++argi];
-            }
-        } else {
-            argConfig.URI = argv[argi]; /* anything else is just an URI */
-        }
-    }
-    /*--------------------------------------------------------------*/
-
-
-    if (argConfig.URI && argConfig.BootstrapScript) {
-        Logger::Log("Launched with bootstrap script and URI.", Logger::LogSeverity::SLOG, "NativeStrapperMain");
-        QString safeArg = QString::fromStdString(std::string(argConfig.BootstrapScript)).toLower().replace(" ", "-");
-
-        for (auto &script : ScriptManager::LoadedScripts) {
-            QString safeTitle = QString::fromStdString(script.title).toLower().replace(" ", "-");
-
-            if (safeTitle == safeArg) {
-                Logger::Log("Found bootstrap script, creating bootstrapper window", Logger::LogSeverity::SLOG, "NativeStrapperMain");
-                BootstrapWindow *w = new BootstrapWindow();
-                w->show();
-
-                Logger::OnLog = [w](std::string message, Logger::LogSeverity severity, std::string from) {
-                    QMetaObject::invokeMethod(w, [w, message]() {
-                        w->setLog(QString::fromStdString(message));
-                    }, Qt::QueuedConnection);
-                };
-
-                Logger::Log("Executing bootstrap script...", Logger::LogSeverity::SINFO, "NativeStrapperMain");
-                
-                std::string scriptPath = ScriptManager::GetScriptPath(script.title);
-                std::string uri = std::string(argConfig.URI);
-                std::string runCmd = script.run;
-
-                size_t pos = runCmd.find("%u");
-                if (pos != std::string::npos)
-                    runCmd.replace(pos, 2, uri);
-
-                auto bootstrapDone = std::make_shared<std::atomic<bool>>(false);
-
-                std::thread scriptThread([scriptPath, uri, w, bootstrapDone]() {
-                    LuaScript::RunScript(scriptPath, uri, w);
-                    bootstrapDone->store(true);
-                });
-                scriptThread.detach();
-
-                QTimer *timer = new QTimer();
-                QObject::connect(timer, &QTimer::timeout, [timer, w, runCmd, bootstrapDone]() {
-                    if (!bootstrapDone->load()) return;
-                    timer->stop();
-                    timer->deleteLater();
-
-                    w->setStatus("Starting Roblox...");
-                    w->setIndeterminate(true);
-
-                    QStringList parts = QString::fromStdString(runCmd).split(' ', Qt::SkipEmptyParts);
-                    QString program = parts.takeFirst();
-                    QProcess *process = new QProcess();
-                    QObject::connect(process, &QProcess::started, [w]() {
-                        w->close();
-                    });
-                    process->start(program, parts);
-                });
-                timer->start(100);
-
-                // ye
-                scriptThread.detach();
-
-                return app.exec();
-            }
-        }
-        Logger::Log("Couldn't find bootstrap script.", Logger::LogSeverity::SFATAL, "NativeStrapperMain");
-        QMessageBox::critical(nullptr, "NativeStrapper", QString("Bootstrap script \"%1\" not found. Please open NativeStrapper and re-import it.").arg(argConfig.BootstrapScript));
-        return 1;
-    }
-
-    // got a URI but no scatter, open GUI
-    OnboardingWindow w;
-    w.show();
     return app.exec();
 }

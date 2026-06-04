@@ -1,5 +1,7 @@
 #pragma once
 
+#include "BootstrapScripts/ScriptManager.hpp"
+
 namespace ActivityWatcher {
-    void StartWatcherThread();
+    void StartWatcherThread(ScriptManager::BootstrapScript*);
 }

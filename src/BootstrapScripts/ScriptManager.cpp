@@ -7,7 +7,6 @@
 #include <QFile>
 #include <QString>
 #include <QRegularExpression>
-
 // woo
 extern "C" {
     #include <lua.h>
@@ -130,6 +129,11 @@ bool ScriptManager::ReadMetadata(const std::string &luaFilePath, BootstrapScript
     }
     lua_pop(L, 1);
 
+    lua_getfield(L, metaIndex, "logfolders");
+    if (lua_istable(L, -1)) {
+        out.logfolders = ReadStringArray(L, lua_gettop(L));
+    }
+    lua_pop(L, 1);
 
     lua_getfield(L, metaIndex, "capabilities");
     if (lua_istable(L, -1)) {
@@ -227,4 +231,13 @@ void ScriptManager::LoadScripts() {
     for (const auto &script : ScriptManager::LoadedScripts) {
         URIHandler::InstallURIs(script.title, script.uris);
     }
+}
+
+ScriptManager::BootstrapScript* ScriptManager::FindFirstScriptByName(std::string scriptName) {
+    QString safeScriptName = QString::fromStdString(scriptName).toLower().replace(" ", "-");
+    for (auto &script : ScriptManager::LoadedScripts) {
+        QString safeTitle = QString::fromStdString(script.title).toLower().replace(" ", "-");
+        if (safeTitle == safeScriptName) return &script;
+    }
+    return NULL; // nuh
 }
