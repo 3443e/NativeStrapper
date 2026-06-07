@@ -2,9 +2,9 @@
 #pragma once
 #include <string>
 
-namespace platform {
+namespace URIHandler {
     // scheme e.g. "roblox-player". Returns true on success.
-    bool setAsDefaultHandler(const std::string& scheme);
+    bool SetAsDefaultHandler(const std::string& scheme);
     // Path of the current handler app, or "" if none.
     std::string currentDefaultHandler(const std::string& scheme);
 }

@@ -104,7 +104,7 @@ auto get_path_string(const std::filesystem::path& p,
                      const std::basic_string<PathChar>& native) {
   if constexpr (std::is_same_v<Char, char> &&
                 std::is_same_v<PathChar, wchar_t>) {
-    return to_utf8<wchar_t>(native, to_utf8_error_policy::wtf);
+    return ToUTF8<wchar_t>(native, to_utf8_error_policy::wtf);
   } else {
     return p.string<Char>();
   }
@@ -118,7 +118,7 @@ void write_escaped_path(basic_memory_buffer<Char>& quoted,
                 std::is_same_v<PathChar, wchar_t>) {
     auto buf = basic_memory_buffer<wchar_t>();
     write_escaped_string<wchar_t>(std::back_inserter(buf), native);
-    bool valid = to_utf8<wchar_t>::convert(quoted, {buf.data(), buf.size()});
+    bool valid = ToUTF8<wchar_t>::convert(quoted, {buf.data(), buf.size()});
     FMT_ASSERT(valid, "invalid utf16");
   } else if constexpr (std::is_same_v<Char, PathChar>) {
     write_escaped_string<std::filesystem::path::value_type>(

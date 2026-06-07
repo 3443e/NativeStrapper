@@ -127,6 +127,17 @@ int main(int argc, char *argv[]) {
     ScriptManager::LoadScripts(); /* scans the installed-scripts folder and loads everything to ScriptManager::LoadedScripts*/
     /* it also reinstalls all URIs incase something happened */
 
+#if defined(_WIN32)
+    Logger::Log("Registering URI handlers on Windows", Logger::LogSeverity::SLOG, "NativeStrapperMain");
+    bool ok1 = platform::SetAsDefaultHandler("roblox");
+    bool ok2 = platform::SetAsDefaultHandler("roblox-player");
+    if (ok1 || ok2) {
+        Logger::Log("URI registration attempted (some results may require user confirmation)", Logger::LogSeverity::SLOG, "NativeStrapperMain");
+    } else {
+        Logger::Log("Failed to register URI handlers on Windows", Logger::LogSeverity::SWARN, "NativeStrapperMain");
+    }
+#endif
+
     Bootstrapper::BootstrapResult BResult = Bootstrapper::MainBootstrap(&argConfig); // This will create a BootstrapWindow.
     if (BResult != Bootstrapper::BootstrapResult::BOOTSTRAP_SUCCESS) {
         QMessageBox::critical(nullptr, "NativeStrapper", QString::fromUtf8(Bootstrapper::Exception.c_str()));
