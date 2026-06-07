@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
         ConfigSaving::Load();
         
         Logger::Log("Loading installed bootstrap scripts", Logger::LogSeverity::SLOG, "NativeStrapperMain");
-        ScriptManager::LoadScripts();
+        ScriptManager::LoadScripts(false);
 
         ScriptManager::BootstrapScript* bootstrapScript = ScriptManager::FindFirstScriptByName(argConfig.BootstrapScript);
         if (bootstrapScript == NULL) {
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
     ConfigSaving::Load();
 
     Logger::Log("Loading installed bootstrap scripts", Logger::LogSeverity::SLOG, "NativeStrapperMain");
-    ScriptManager::LoadScripts(); /* scans the installed-scripts folder and loads everything to ScriptManager::LoadedScripts*/
+    ScriptManager::LoadScripts(true); /* scans the installed-scripts folder and loads everything to ScriptManager::LoadedScripts*/
     /* it also reinstalls all URIs incase something happened */
 
 #if defined(_WIN32)

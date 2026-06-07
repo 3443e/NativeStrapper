@@ -11,31 +11,44 @@ namespace ConfigSaving {
     ConfigData Current;
 }
 
-static std::string getConfigPath() {
+QString ConfigSaving::GetConfigPath() {
     QString dir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
     QDir().mkpath(dir);
-    return (dir + "/config.json").toStdString();
+    return (dir + "/config.json");
 }
 
 void ConfigSaving::Load() {
-    std::ifstream f(getConfigPath());
-    if (!f.is_open()) return;
-
-    json j;
-    try {
-        f >> j;
-    } catch (...) {
+    std::ifstream f(GetConfigPath().toStdString());
+    if (!f.is_open()) {
         return;
     }
 
-    Current.installDir = j.value("InstallDirectory", Current.installDir);
+    json j;
+    try { f >> j; } catch (...) { return; }
+
+    Current.installDir = j.value("installDir", "");
+
+    if (j.contains("scriptConfig") && j["scriptConfig"].is_object()) {
+        for (auto &[scriptName, settings] : j["scriptConfig"].items()) {
+            for (auto &[key, val] : settings.items()) {
+                Current.scriptConfig[scriptName][key] = val.get<std::string>();
+            }
+        }
+    }
 }
 
 void ConfigSaving::Save() {
     json j;
+    j["installDir"] = Current.installDir;
 
-    j["InstallDirectory"] = Current.installDir;
+    json scriptConfig;
+    for (const auto &[scriptName, settings] : Current.scriptConfig) {
+        for (const auto &[key, val] : settings) {
+            scriptConfig[scriptName][key] = val;
+        }
+    }
+    j["scriptConfig"] = scriptConfig;
 
-    std::ofstream f(getConfigPath());
+    std::ofstream f(GetConfigPath().toStdString());
     f << j.dump(4);
 }
