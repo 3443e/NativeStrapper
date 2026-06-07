@@ -1,7 +1,7 @@
 #include "BootstrapScripts/ScriptManager.hpp"
 #include "BootstrapScripts/NativeStrapperApi.hpp"
 #include "Logger.hpp"
-#include "URIHandler.hpp"
+#include "URIHandler/MainURIHandler.hpp"
 #include <QDir>
 #include <QStandardPaths>
 #include <QFile>
