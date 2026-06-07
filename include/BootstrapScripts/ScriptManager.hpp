@@ -31,7 +31,7 @@ namespace ScriptManager {
     bool UninstallScript(const std::string &title);
 
      // just scans the scripts dir and reads metadata from each bootstrap script
-    void LoadScripts();
+    void LoadScripts(bool reinstallURIs);
 
     inline bool HasCapability(const BootstrapScript &script, const std::string &cap) {
         return std::find(script.capabilities.begin(), script.capabilities.end(), cap) != script.capabilities.end();

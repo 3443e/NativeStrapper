@@ -213,7 +213,7 @@ bool ScriptManager::UninstallScript(const std::string &title) {
     return true;
 }
 
-void ScriptManager::LoadScripts() {
+void ScriptManager::LoadScripts(bool reinstallURIs) {
     LoadedScripts.clear();
     QString scriptsDir = QString::fromStdString(GetScriptsDir());
     QDir dir(scriptsDir);
@@ -227,6 +227,8 @@ void ScriptManager::LoadScripts() {
         }
     }
 
+    if (!reinstallURIs) return;
+    
     // reinstall all URIs at launch incase roblox default bootstrapper/sober or whatever breaks them
     for (const auto &script : ScriptManager::LoadedScripts) {
         URIHandler::InstallURIs(script.title, script.uris);

@@ -52,7 +52,6 @@ Bootstrapper::BootstrapResult Bootstrapper::MainBootstrap(NativeStrapper::ArgCon
                 return Bootstrapper::BootstrapResult::BOOTSTRAP_SCRIPT_ERR;
             }
 
-            // calling these functions directly causes a segfault, smh... SMH. SHAKING MY HEAD, SHAKING MY FUCKING HEAD
             QMetaObject::invokeMethod(w, [w]() {
                 w->setStatus("Starting Roblox...");
                 w->setIndeterminate(true);
