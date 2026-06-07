@@ -1,6 +1,8 @@
 #include "UserInterface/OnboardingWindow.hpp"
 #include "UserInterface/SettingsWindow.hpp"
 #include "BootstrapScripts/ScriptManager.hpp"
+#include "URIHandler/MainURIHandler.hpp"
+#include "Logger.hpp"
 #include <QCoreApplication>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -13,6 +15,36 @@
 #include <QFile>
 #include <QTextStream>
 #include <QMessageBox>
+#include <QTimer>
+#include <thread>
+
+namespace {
+void reinstallLoadedScriptURIs() {
+    const auto scripts = ScriptManager::LoadedScripts;
+    if (scripts.empty()) {
+#if defined(__APPLE__)
+        Logger::Log("No installed scripts found; installing generic macOS URI handler", Logger::LogSeverity::SWARN, "OnboardingWindow");
+        std::thread([]() {
+            if (!URIHandler::InstallURIs("", {"roblox", "roblox-player"})) {
+                Logger::Log("Failed to install generic macOS URI handler", Logger::LogSeverity::SERROR, "OnboardingWindow");
+            }
+        }).detach();
+#else
+        Logger::Log("No installed scripts found; skipping URI handler refresh", Logger::LogSeverity::SWARN, "OnboardingWindow");
+#endif
+        return;
+    }
+
+    std::thread([scripts]() {
+        for (const auto &script : scripts) {
+            Logger::Log("Refreshing URI handlers for " + script.title, Logger::LogSeverity::SLOG, "OnboardingWindow");
+            if (!URIHandler::InstallURIs(script.title, script.uris)) {
+                Logger::Log("Failed to refresh URI handlers for " + script.title, Logger::LogSeverity::SERROR, "OnboardingWindow");
+            }
+        }
+    }).detach();
+}
+}
 
 OnboardingWindow::OnboardingWindow() {
     setWindowTitle("NativeStrapper");
@@ -223,6 +255,9 @@ OnboardingWindow::OnboardingWindow() {
     setCentralWidget(root);
 
     refreshScriptView();
+    QTimer::singleShot(0, this, []() {
+        reinstallLoadedScriptURIs();
+    });
 }
 
 void OnboardingWindow::refreshScriptView() {

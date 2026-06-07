@@ -41,13 +41,20 @@ elseif(WIN32)
   list(APPEND EXTRA_SOURCES "${CMAKE_SOURCE_DIR}/assets/NativeStrapper.rc")
   set(PLATFORM_HANDLER_SOURCES src/URIHandler/WindowsURIHandler.cpp)
 elseif(UNIX)
-  set(PLATFORM_HANDLER_SOURCES src/URIHandler/LinuxURIHandler.cpp)
+  set(PLATFORM_HANDLER_SOURCES src/URIHandler/LinuxURIHandler.cpp
+          src/URIHandler/AppBundlerGen.hpp)
 endif()
 
 add_executable(nativestrapper ${MACOSX_BUNDLE_FLAG} ${SOURCES} ${HEADERS} ${LUA_SOURCES} ${EXTRA_SOURCES} ${PLATFORM_HANDLER_SOURCES} )
 
 if(APPLE)
-  set_target_properties(nativestrapper PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
+    set_target_properties(nativestrapper PROPERTIES
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.scene.nativestrapper"
+    )
+    target_link_libraries(nativestrapper PRIVATE
+            "-framework CoreFoundation"
+            "-framework CoreServices"
+    )
 endif()
 
 target_include_directories(nativestrapper PRIVATE

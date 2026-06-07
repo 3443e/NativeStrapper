@@ -119,8 +119,7 @@ int main(int argc, char *argv[]) {
     ConfigSaving::Load();
 
     Logger::Log("Loading installed bootstrap scripts", Logger::LogSeverity::SLOG, "NativeStrapperMain");
-    ScriptManager::LoadScripts(true); /* scans the installed-scripts folder and loads everything to ScriptManager::LoadedScripts*/
-    /* it also reinstalls all URIs incase something happened */
+    ScriptManager::LoadScripts(false); /* scans the installed-scripts folder and loads everything to ScriptManager::LoadedScripts */
 
 #if defined(_WIN32)
     Logger::Log("Registering URI handlers on Windows", Logger::LogSeverity::SLOG, "NativeStrapperMain");
