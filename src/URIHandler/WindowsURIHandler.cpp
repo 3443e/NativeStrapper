@@ -4,6 +4,7 @@
 #include "ConfigSaving.hpp"
 #include <QCoreApplication>
 #include <QString>
+#include <QDir>
 #include <windows.h>
 
 static void setRegString(HKEY key, const QString &name, const QString &value) {
