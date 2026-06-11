@@ -1,7 +1,7 @@
 #include "LockFileManager.hpp"
 #include <QStandardPaths>
 #include <QDir>
-#ifdef Q_OS_WIN
+#ifdef _WIN32
 #  include <windows.h>
 #else
 #  include <fcntl.h>
@@ -12,7 +12,7 @@
 namespace LockFileManager {
 
 void LockInstance(const QString &appName) {
-#ifdef Q_OS_WIN
+#ifdef _WIN32
     CreateMutexW(nullptr, TRUE, (L"Local\\" + appName.toStdWString()).c_str());
 #else
     QString dir = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
@@ -26,7 +26,7 @@ void LockInstance(const QString &appName) {
 }
 
 bool IsAlreadyRunning(const QString &appName) {
-#ifdef Q_OS_WIN
+#ifdef _WIN32
     HANDLE h = CreateMutexW(nullptr, TRUE, (L"Local\\" + appName.toStdWString()).c_str());
     bool running = (GetLastError() == ERROR_ALREADY_EXISTS);
     if (h) CloseHandle(h);

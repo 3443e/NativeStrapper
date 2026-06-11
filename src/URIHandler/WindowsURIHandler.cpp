@@ -1,4 +1,4 @@
-#ifdef Q_OS_WIN
+#ifdef _WIN32
 #include "URIHandler/MainURIHandler.hpp"
 #include "Logger.hpp"
 #include "ConfigSaving.hpp"

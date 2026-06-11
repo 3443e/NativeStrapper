@@ -28,7 +28,19 @@ extern "C" {
     #include <lauxlib.h>
 }
 
+#ifdef _WIN32
+#include <windows.h>
+#include <cstdio>
+#endif
+
 int main(int argc, char *argv[]) {
+#ifdef _WIN32
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+        freopen("CONIN$", "r", stdin);
+    }
+#endif
     std::cout << "\033[36mNativeStrapper\033[0m v" + std::string(NativeStrapper::NativeStrapperVersion) << std::endl;
     std::cout << "Repo: " + std::string(NativeStrapper::NativeStrapperRepo) << std::endl;
     std::cout << "-------------------------------------------" << std::endl;
