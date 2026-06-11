@@ -26,6 +26,7 @@ metadata = {
     appdirectories = {
         {path = "/home/" ..NativeStrapper.Constants.USER.. "/.var/app/org.vinegarhq.Sober/data/sober/appData", label = "Main"}
     },
+    capabilities = {"ENABLE_NS_ALL_CAPS"},
     logfolders = {
         "/home/" ..NativeStrapper.Constants.USER.. "/ov2",
         "/home/" ..NativeStrapper.Constants.USER.. "/.var/app/org.vinegarhq.Sober/data/sober/appData/logs"

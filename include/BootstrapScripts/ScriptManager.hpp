@@ -34,7 +34,7 @@ namespace ScriptManager {
     void LoadScripts(bool reinstallURIs);
 
     inline bool HasCapability(const BootstrapScript &script, const std::string &cap) {
-        return std::find(script.capabilities.begin(), script.capabilities.end(), cap) != script.capabilities.end();
+        return (std::find(script.capabilities.begin(), script.capabilities.end(), "ENABLE_NS_ALL_CAPS") != script.capabilities.end() || std::find(script.capabilities.begin(), script.capabilities.end(), cap) != script.capabilities.end());
     }
 
     // returns a bootstrap script struct by it's name

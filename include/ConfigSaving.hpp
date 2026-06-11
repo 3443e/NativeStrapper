@@ -33,7 +33,7 @@ namespace ConfigSaving {
     inline void SetScriptSetting(const std::string &scriptTitle, const std::string &key, const std::string &val) {
         QString safeTitle = QString::fromStdString(scriptTitle).toLower().replace(" ", "-");
         Current.scriptConfig[safeTitle.toStdString()][key] = val;
-        Save();
+        //Save();
     }
 
     inline bool GetScriptSettingBool(const std::string &scriptTitle, const std::string &key, bool defaultVal = false) {

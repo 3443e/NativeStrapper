@@ -16,6 +16,12 @@
 #include <QPainter>
 #include <QScrollArea>
 #include <QEvent>
+#include <QDialog>
+#include <QListWidget>
+#include <QInputDialog>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QPushButton>
 
 static QFrame* makeSeparator() {
     auto *sep = new QFrame();
@@ -175,10 +181,7 @@ static QWidget* makeButtonRow(const QString &label, const QString &desc, const Q
     return row;
 }
 
-static QWidget* makeDropdownRow(const QString &label, const QString &desc, const QStringList &options,
-    const ScriptManager::BootstrapScript &script, const std::string &key,
-    const QString &badgeHover = "INTEGRATED")
-{
+static QWidget* makeDropdownRow(const QString &label, const QString &desc, const QStringList &options, const ScriptManager::BootstrapScript &script, const std::string &key, const QString &badgeHover = "INTEGRATED") {
     auto *row = new QWidget();
     auto *layout = new QHBoxLayout(row);
     layout->setContentsMargins(0, 4, 0, 4);
@@ -276,6 +279,91 @@ static QScrollArea* makeScrollArea(QWidget *content) {
     return scroll;
 }
 
+static void openCommandsDialog(const ScriptManager::BootstrapScript &script) {
+    auto *dialog = new QDialog();
+    dialog->setWindowTitle("Custom Commands");
+    dialog->setFixedSize(420, 320);
+
+    auto *layout = new QVBoxLayout(dialog);
+    layout->setContentsMargins(16, 16, 16, 16);
+    layout->setSpacing(8);
+
+    auto *list = new QListWidget();
+    list->setStyleSheet(
+        "QListWidget {"
+        "  background-color: #1e1e1e;"
+        "  color: #cccccc;"
+        "  border: 1px solid #333333;"
+        "  border-radius: 3px;"
+        "  font-size: 11px;"
+        "}"
+        "QListWidget::item:selected {"
+        "  background-color: #2e2e2e;"
+        "  color: #ffffff;"
+        "}"
+    );
+
+    // load saved commands
+    std::string saved = ConfigSaving::GetScriptSetting(script.title, "customcommands", "");
+    if (!saved.empty()) {
+        for (auto &cmd : QString::fromStdString(saved).split("\n", Qt::SkipEmptyParts)) {
+            list->addItem(cmd);
+        }
+    }
+
+    auto save = [&]() {
+        QStringList cmds;
+        for (int i = 0; i < list->count(); i++) {
+            cmds << list->item(i)->text();
+        }
+        ConfigSaving::SetScriptSetting(script.title, "customcommands", cmds.join("\n").toStdString());
+    };
+
+    // buttons
+    auto *btnRow = new QHBoxLayout();
+
+    auto *addBtn = new QPushButton("Add");
+    auto *modifyBtn = new QPushButton("Modify");
+    auto *removeBtn = new QPushButton("Remove");
+
+    btnRow->addWidget(addBtn);
+    btnRow->addWidget(modifyBtn);
+    btnRow->addWidget(removeBtn);
+    btnRow->addStretch();
+
+    QObject::connect(addBtn, &QPushButton::clicked, [=, &save]() {
+        bool ok;
+        QString cmd = QInputDialog::getText(dialog, "Add Command", "Command:", QLineEdit::Normal, "", &ok);
+        if (ok && !cmd.trimmed().isEmpty()) {
+            list->addItem(cmd.trimmed());
+            save();
+        }
+    });
+
+    QObject::connect(modifyBtn, &QPushButton::clicked, [=, &save]() {
+        auto *item = list->currentItem();
+        if (!item) return;
+        bool ok;
+        QString cmd = QInputDialog::getText(dialog, "Modify Command", "Command:", QLineEdit::Normal, item->text(), &ok);
+        if (ok && !cmd.trimmed().isEmpty()) {
+            item->setText(cmd.trimmed());
+            save();
+        }
+    });
+
+    QObject::connect(removeBtn, &QPushButton::clicked, [=, &save]() {
+        auto *item = list->currentItem();
+        if (!item) return;
+        delete item;
+        save();
+    });
+
+    layout->addWidget(list);
+    layout->addLayout(btnRow);
+
+    dialog->exec();
+}
+
 static QWidget* makeNativeStrapperPage(const ScriptManager::BootstrapScript &script) {
     auto *content = new QWidget();
     auto *layout = new QVBoxLayout(content);
@@ -287,8 +375,8 @@ static QWidget* makeNativeStrapperPage(const ScriptManager::BootstrapScript &scr
     layout->addWidget(makeSeparator());
     layout->addWidget(makeToggleRow(
         "Prompt before launching another instance",
-        "Show a confirmation dialog before opening a second Roblox instance.",
-        script, "promptbeforerelaunch", false
+        "Show a confirmation dialog before opening a second Roblox instance. (We recommend you enable this)",
+        script, "promptbeforerelaunch", true
     ));
     layout->addStretch();
 
@@ -328,36 +416,38 @@ static QWidget* makeDeploymentPage(const ScriptManager::BootstrapScript &script)
     return makeScrollArea(content);
 }
 
+
 static QWidget* makeIntegrationsPage(const ScriptManager::BootstrapScript &script) {
     auto *content = new QWidget();
     auto *layout = new QVBoxLayout(content);
     layout->setContentsMargins(20, 20, 20, 20);
     layout->setSpacing(8);
-
     layout->addWidget(makeTitle("Integrations"));
     layout->addWidget(makeDesc("Manage third-party integrations."));
-    layout->addWidget(makeSeparator());
-    layout->addWidget(makeToggleRow(
-        "Enable activity tracker",
-        "Tracks which Roblox game you are currently playing through log files.",
-        script, "enableactivitytracker", false
-    ));
-
-    layout->addSpacing(8);
-    layout->addWidget(makeTitle("Discord Rich Presence"));
-    layout->addWidget(makeDesc("Discord Rich Presence needs activity tracking to work!"));
-    layout->addWidget(makeSeparator());
-    layout->addWidget(makeToggleRow(
-        "Enable Discord RPC",
-        "Show your current Roblox game in Discord.",
-        script, "enablediscordrpc", false
-    ));
-    layout->addWidget(makeToggleRow(
-        "Show game name",
-        "Display the name of the game you are playing.",
-        script, "showdiscordrpcgamename", true
-    ));
-
+    if (ScriptManager::HasCapability(script, "ACTIVITY_WATCHER")) {
+        layout->addWidget(makeSeparator());
+        layout->addWidget(makeToggleRow(
+            "Enable activity tracker",
+            "Tracks which Roblox game you are currently playing through log files. (Might break if roblox crashes)",
+            script, "enableactivitytracker", false
+        ));
+        if (ScriptManager::HasCapability(script, "DISCORDRPC")) {
+            layout->addSpacing(8);
+            layout->addWidget(makeTitle("Discord Rich Presence"));
+            layout->addWidget(makeDesc("Discord Rich Presence needs activity tracking to work!"));
+            layout->addWidget(makeSeparator());
+            layout->addWidget(makeToggleRow(
+                "Enable Discord RPC",
+                "Show your current Roblox game in Discord.",
+                script, "enablediscordrpc", false
+            ));
+            layout->addWidget(makeToggleRow(
+                "Show game name",
+                "Display the name of the game you are playing.",
+                script, "showdiscordrpcgamename", true
+            ));
+        }
+    }
     layout->addSpacing(8);
     layout->addWidget(makeTitle("Custom"));
     layout->addWidget(makeSeparator());
@@ -369,11 +459,9 @@ static QWidget* makeIntegrationsPage(const ScriptManager::BootstrapScript &scrip
     layout->addWidget(makeButtonRow(
         "Custom commands",
         "Add commands to run when Roblox launches or exits.",
-        "Edit", []() { /* TODO */ }
+        "Edit", [script]() { openCommandsDialog(script); }
     ));
-
     layout->addStretch();
-
     return makeScrollArea(content);
 }
 
@@ -523,7 +611,7 @@ SettingsWindow::SettingsWindow(const ScriptManager::BootstrapScript &script) {
 
     QObject::connect(cancelBtn, &QPushButton::clicked, [this]() { close(); });
     QObject::connect(saveBtn, &QPushButton::clicked, [this]() {
-        // todo later idk flush any pending state if needed
+        ConfigSaving::Save();
         close();
     });
 

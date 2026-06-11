@@ -2,9 +2,11 @@
 #include "Bootstrapper.hpp"
 #include "BootstrapScripts/LuaScript.hpp"
 #include "BootstrapScripts/ScriptManager.hpp"
+#include "ConfigSaving.hpp"
 #include "Logger.hpp"
 #include "UserInterface/BootstrapWindow.hpp"
 #include "UserInterface/OnboardingWindow.hpp"
+#include "LockFileManager.hpp"
 #include <QCoreApplication>
 #include <QProcess>
 #include <QMessageBox>
@@ -22,6 +24,17 @@ Bootstrapper::BootstrapResult Bootstrapper::MainBootstrap(NativeStrapper::ArgCon
             Bootstrapper::Exception = QString("Bootstrap script \"%1\" not found. Please open NativeStrapper and re-import it.").arg(argConfig->BootstrapScript).toStdString();
             return Bootstrapper::BootstrapResult::BOOTSTRAP_SCRIPT_NOT_FOUND;
         }
+
+        if (ConfigSaving::GetScriptSettingBool(script->title, "promptbeforerelaunch")) {
+            if (LockFileManager::IsAlreadyRunning("NativeStrapper676767" + QString::fromStdString(script->title))) {
+                Logger::Log("Roblox is already running!", Logger::LogSeverity::SERROR, "MainBootstrap");
+                auto result = QMessageBox::question(nullptr, "Already Running", "Roblox is already running. Do you want to launch anyway?", QMessageBox::Yes | QMessageBox::No);
+                if (result == QMessageBox::No) {
+                    exit(0);
+                }
+            }
+        }
+        LockFileManager::LockInstance("NativeStrapper676767" + QString::fromStdString(script->title));
 
         Logger::Log("Found bootstrap script, creating bootstrapper window", Logger::LogSeverity::SLOG, "MainBootstrap");
         BootstrapWindow *w = new BootstrapWindow();

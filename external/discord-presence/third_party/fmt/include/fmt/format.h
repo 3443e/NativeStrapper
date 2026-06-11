@@ -1336,13 +1336,13 @@ inline void to_utf8_3bytes(buffer<char>& buf, uint32_t cp) {
 }
 
 // A converter from UTF-16/UTF-32 (host endian) to UTF-8.
-template <typename WChar, typename Buffer = memory_buffer> class ToUTF8 {
+template <typename WChar, typename Buffer = memory_buffer> class to_utf8 {
  private:
   Buffer buffer_;
 
  public:
-  ToUTF8() {}
-  explicit ToUTF8(basic_string_view<WChar> s,
+  to_utf8() {}
+  explicit to_utf8(basic_string_view<WChar> s,
                    to_utf8_error_policy policy = to_utf8_error_policy::abort) {
     static_assert(sizeof(WChar) == 2 || sizeof(WChar) == 4,
                   "expected utf16 or utf32");

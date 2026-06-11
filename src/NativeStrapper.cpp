@@ -6,6 +6,7 @@ something something
 */
 
 #include <iostream>
+#include <qdebug.h>
 #include <thread>
 #include <string>
 #include <QApplication>
@@ -86,11 +87,16 @@ int main(int argc, char *argv[]) {
             Logger::Log("Couldn't find script, activity watcher will exit.", Logger::LogSeverity::SLOG, "NativeStrapperMain");
             return 1;
         }
-        
-        Logger::Log("Starting watcher thread for " + std::string(argConfig.BootstrapScript), Logger::LogSeverity::SLOG, "NativeStrapperMain");
-        ActivityWatcher::StartWatcherThread(bootstrapScript);
-        
-        std::this_thread::sleep_for(std::chrono::hours(67));
+
+        if (ConfigSaving::GetScriptSettingBool(bootstrapScript->title, "enableactivitytracker") && ScriptManager::HasCapability(*bootstrapScript, "ACTIVITY_WATCHER")) {
+            Logger::Log("Starting watcher thread for " + std::string(argConfig.BootstrapScript), Logger::LogSeverity::SLOG, "NativeStrapperMain");
+            ActivityWatcher::StartWatcherThread(bootstrapScript);
+            
+            std::this_thread::sleep_for(std::chrono::hours(67));
+        } else {
+            Logger::Log("Tried to start activity watcher but activity watcher isn't enabled or is not allowed for this bootstrap script. Exitting.", Logger::LogSeverity::SFATAL, "NativeStrapperMain");
+            return 1;
+        }
     }
 
     Logger::Log("Creating QApplication", Logger::LogSeverity::SLOG, "NativeStrapperMain");
@@ -120,17 +126,6 @@ int main(int argc, char *argv[]) {
 
     Logger::Log("Loading installed bootstrap scripts", Logger::LogSeverity::SLOG, "NativeStrapperMain");
     ScriptManager::LoadScripts(false); /* scans the installed-scripts folder and loads everything to ScriptManager::LoadedScripts */
-
-#if defined(_WIN32)
-    Logger::Log("Registering URI handlers on Windows", Logger::LogSeverity::SLOG, "NativeStrapperMain");
-    bool ok1 = platform::SetAsDefaultHandler("roblox");
-    bool ok2 = platform::SetAsDefaultHandler("roblox-player");
-    if (ok1 || ok2) {
-        Logger::Log("URI registration attempted (some results may require user confirmation)", Logger::LogSeverity::SLOG, "NativeStrapperMain");
-    } else {
-        Logger::Log("Failed to register URI handlers on Windows", Logger::LogSeverity::SWARN, "NativeStrapperMain");
-    }
-#endif
 
     Bootstrapper::BootstrapResult BResult = Bootstrapper::MainBootstrap(&argConfig); // This will create a BootstrapWindow.
     if (BResult != Bootstrapper::BootstrapResult::BOOTSTRAP_SUCCESS) {
