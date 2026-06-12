@@ -96,6 +96,7 @@ jobs:
           New-Item -ItemType Directory -Path release
           New-Item -ItemType Directory -Path release\platforms
           New-Item -ItemType Directory -Path release\styles
+          New-Item -ItemType Directory -Path release\imageformats
 
           Copy-Item build\nativestrapper.exe release\
 
@@ -104,6 +105,9 @@ jobs:
           Copy-Item "$env:Qt5_Dir\bin\Qt5Core.dll" release\
           Copy-Item "$env:Qt5_Dir\bin\Qt5Gui.dll" release\
           Copy-Item "$env:Qt5_Dir\bin\Qt5Widgets.dll" release\
+          
+          Copy-Item "$env:Qt5_Dir\plugins\imageformats\qsvgicon.dll" release\imageformats\
+          Copy-Item "$env:Qt5_Dir\plugins\imageformats\qsvg.dll" release\imageformats\
 
           Copy-Item "C:\mingw64\bin\libgcc_s_seh-1.dll" release\
           Copy-Item "C:\mingw64\bin\libwinpthread-1.dll" release\
