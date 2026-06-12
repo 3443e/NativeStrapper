@@ -14,6 +14,7 @@ static void setRegString(HKEY key, const QString &name, const QString &value) {
 }
 
 bool URIHandler::InstallURIs(const std::string &title, const std::vector<std::string> &uris) {
+    QString safeTitle = QString::fromStdString(title).toLower().replace(" ", "-"); // match Linux getSafeTitle
     QString execPath = QString::fromStdString(ConfigSaving::Current.installDir);
     if (execPath.isEmpty()) {
         execPath = QCoreApplication::applicationFilePath();
@@ -23,11 +24,9 @@ bool URIHandler::InstallURIs(const std::string &title, const std::vector<std::st
     for (const auto &uri : uris) {
         QString scheme = QString::fromStdString(uri).trimmed();
         QString keyPath = "Software\\Classes\\" + scheme;
-
         HKEY uriKey, iconKey, commandKey;
 
         RegCreateKeyExW(HKEY_CURRENT_USER, keyPath.toStdWString().c_str(), 0, nullptr, 0, KEY_SET_VALUE | KEY_CREATE_SUB_KEY, nullptr, &uriKey, nullptr);
-
         setRegString(uriKey, "", "URL: " + scheme + " Protocol");
         setRegString(uriKey, "URL Protocol", "");
 
@@ -36,7 +35,7 @@ bool URIHandler::InstallURIs(const std::string &title, const std::vector<std::st
         RegCloseKey(iconKey);
 
         RegCreateKeyExW(HKEY_CURRENT_USER, (keyPath + "\\shell\\open\\command").toStdWString().c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &commandKey, nullptr);
-        setRegString(commandKey, "", "\"" + execPath + "\" \"%1\"");
+        setRegString(commandKey, "", "\"" + execPath + "\" --bootstrap-script " + safeTitle + " \"%1\""); // <--
         RegCloseKey(commandKey);
 
         RegCloseKey(uriKey);

@@ -1,14 +1,15 @@
 metadata = {
-    title = RobloxPlayerBeta.exe - Windowse",
+    title = "RobloxPlayerBeta.exe - Windows",
     uris = {"roblox", "roblox-player"},
-    run %LOCALAPPDATA%/idkber %u",
-    platform Windowsinux"},
+    run = "%LOCALAPPDATA%/idkber %u",
+    platform {"Windows"},
+    capabilities = {"ENABLE_NS_ALL_CAPS"},
     appdirectories = {
-        {path = "/home/" ..NativeStrapper.Constants.USER.. "/.var/app/org.vinegarhq.Sober/data/sober/appData", label = "Main"}
+        {path = "C:\\", label = "Main"}
     },
     logfolders = {
-        "/home/" ..NativeStrapper.Constants.USER.. "/ov2",
-        "/home/" ..NativeStrapper.Constants.USER.. "/.var/app/org.vinegarhq.Sober/data/sober/appData/logs"
+        "C:\\",
+        "C:\\s"
     }
 }
 
