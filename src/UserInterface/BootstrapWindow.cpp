@@ -1,4 +1,5 @@
 #include "UserInterface/BootstrapWindow.hpp"
+#include "TitleBarDarkMode.hpp"
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -11,6 +12,7 @@
 #include <QDebug>
 
 BootstrapWindow::BootstrapWindow() {
+    setWindowFlags(Qt::FramelessWindowHint);
     setWindowTitle("NativeStrapper");
     setFixedSize(400, 240);
 
@@ -75,6 +77,9 @@ BootstrapWindow::BootstrapWindow() {
     layout->addWidget(cancelBtn, 0, Qt::AlignHCenter);
 
     setCentralWidget(root);
+#ifdef _WIN32
+    ApplyDarkTitleBar(this);
+#endif
 }
 
 void BootstrapWindow::closeEvent(QCloseEvent *event) {

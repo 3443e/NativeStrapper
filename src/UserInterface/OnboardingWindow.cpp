@@ -2,6 +2,7 @@
 #include "UserInterface/SettingsWindow.hpp"
 #include "BootstrapScripts/ScriptManager.hpp"
 #include "URIHandler/MainURIHandler.hpp"
+#include "TitleBarDarkMode.hpp"
 #include "Logger.hpp"
 #include <QCoreApplication>
 #include <QWidget>
@@ -258,6 +259,9 @@ OnboardingWindow::OnboardingWindow() {
     QTimer::singleShot(0, this, []() {
         reinstallLoadedScriptURIs();
     });
+#ifdef _WIN32
+    ApplyDarkTitleBar(this);
+#endif
 }
 
 void OnboardingWindow::refreshScriptView() {
