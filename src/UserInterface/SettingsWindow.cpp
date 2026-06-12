@@ -23,6 +23,11 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 
+#ifdef _WIN32
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
+#endif
+
 static QFrame* makeSeparator() {
     auto *sep = new QFrame();
     sep->setFrameShape(QFrame::HLine);
@@ -632,4 +637,10 @@ SettingsWindow::SettingsWindow(const ScriptManager::BootstrapScript &script) {
     });
 
     setCentralWidget(root);
+#ifdef _WIN32
+    HWND hwnd = reinterpret_cast<HWND>(winId());
+    BOOL dark = TRUE;
+    DwmSetWindowAttribute(hwnd, 20, &dark, sizeof(dark));
+    DwmSetWindowAttribute(hwnd, 19, &dark, sizeof(dark));
+#endif
 }

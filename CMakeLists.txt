@@ -68,3 +68,6 @@ target_include_directories(nativestrapper PRIVATE
 )
 
 target_link_libraries(nativestrapper PRIVATE Qt5::Widgets discord-rpc CURL::libcurl)
+if(WIN32)
+    target_link_libraries(nativestrapper PRIVATE dwmapi)
+endif()
