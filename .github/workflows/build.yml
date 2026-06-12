@@ -90,6 +90,11 @@ jobs:
         run: |
           ldd /mingw64/bin/libcurl-4.dll | grep -v "system\|Windows\|ntdll"
 
+      - name: idk
+        shell: pwsh
+        run: |
+          Get-ChildItem "$env:Qt5_Dir\plugins\imageformats\"
+
       - name: Deploy
         shell: pwsh
         run: |
